@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-    <title>Monitor Tętna BLE</title>
+    <title>HR Monitor</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -354,7 +354,7 @@
 
         .zone-summary-row {
             display: grid;
-            grid-template-columns: 205px 1fr 105px;
+            grid-template-columns: 165px 1fr 105px;
             align-items: center;
             gap: 12px;
             font-size: 0.88rem;
@@ -640,7 +640,7 @@
         <!-- Nagłówek -->
         <header>
             <div>
-                <h1>Monitor Tętna Bluetooth (BLE)</h1>
+                <h1>HR Monitor</h1>
                 <div id="bleStatusText" class="status-text">Czujnik: Rozłączony</div>
             </div>
             <div class="controls">
@@ -790,11 +790,11 @@
         const DEFAULT_AGE = 30;
         const DEFAULT_ZONE_MODE = 'pct';
         const DEFAULT_ZONES = [
-            { id: 1, name: 'Strefa 1 (Niebieska)', minPct: 50, maxPct: 60, minBpm: 95, maxBpm: 114, color: '#3b82f6' },
-            { id: 2, name: 'Strefa 2 (Zielona)', minPct: 60, maxPct: 70, minBpm: 114, maxBpm: 133, color: '#22c55e' },
-            { id: 3, name: 'Strefa 3 (Żółta)', minPct: 70, maxPct: 80, minBpm: 133, maxBpm: 152, color: '#eab308' },
-            { id: 4, name: 'Strefa 4 (Pomarańczowa)', minPct: 80, maxPct: 90, minBpm: 152, maxBpm: 171, color: '#f97316' },
-            { id: 5, name: 'Strefa 5 (Ciemnoczerwona)', minPct: 90, maxPct: 100, minBpm: 171, maxBpm: 190, color: '#991b1b' }
+            { id: 1, name: 'Strefa 1: rozgrzewka', minPct: 50, maxPct: 60, minBpm: 95, maxBpm: 114, color: '#3b82f6' },
+            { id: 2, name: 'Strefa 2: spokojna', minPct: 60, maxPct: 70, minBpm: 114, maxBpm: 133, color: '#22c55e' },
+            { id: 3, name: 'Strefa 3: aerobowa', minPct: 70, maxPct: 80, minBpm: 133, maxBpm: 152, color: '#eab308' },
+            { id: 4, name: 'Strefa 4: progowa', minPct: 80, maxPct: 90, minBpm: 152, maxBpm: 171, color: '#f97316' },
+            { id: 5, name: 'Strefa 5: maksymalna', minPct: 90, maxPct: 100, minBpm: 171, maxBpm: 190, color: '#991b1b' }
         ];
 
         // --- Profil i strefy tętna ---
@@ -1142,10 +1142,10 @@
                 const { minBpm } = getZoneBoundsBpm(zones[i]);
                 if (bpm >= minBpm) return zones[i];
             }
-            return { id: 0, name: 'Poniżej Strefy 1', color: '#94a3b8' };
+            return { id: 0, name: 'Poniżej stref', color: '#94a3b8' };
         }
 
-        // --- Podsumowanie czasu w strefach (od Strefy 5 na górze do Poniżej Strefy 1 na dole) ---
+        // --- Podsumowanie czasu w strefach (od maksymalnej na górze do poniżej na dole) ---
         function renderZoneSummary() {
             const msByZone = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
             let totalMs = 0;
@@ -1160,7 +1160,7 @@
 
             const displayZones = [
                 ...[...zones].reverse(),
-                { id: 0, name: 'Poniżej Strefy 1', color: '#94a3b8' }
+                { id: 0, name: 'Poniżej stref', color: '#94a3b8' }
             ];
 
             zoneSummaryList.innerHTML = '';
@@ -1334,7 +1334,7 @@
             });
         }
 
-        // --- Panel użytkownika i tabela stref (Strefa 5 na górze -> Strefa 1 na dole) ---
+        // --- Panel użytkownika i tabela stref (maksymalna na górze -> rozgrzewka na dole) ---
         btnTogglePanel.addEventListener('click', () => {
             userPanel.classList.toggle('hidden');
         });
@@ -1418,7 +1418,7 @@
                 if (zoneMode === 'pct') {
                     const { minBpm, maxBpm } = getZoneBoundsBpm(z);
                     tr.innerHTML = `
-            <td><span class="color-dot" style="background:${z.color}"></span>${z.name}</td>
+            <td><span class="color-dot" style="background:${z.color}"></span>${z.id}. ${z.name}</td>
             <td><input type="number" min="30" max="100" value="${z.minPct}" data-idx="${idx}" data-field="minPct"></td>
             <td><input type="number" min="40" max="110" value="${z.maxPct}" data-idx="${idx}" data-field="maxPct"></td>
             <td><strong>${minBpm} – ${isLast ? maxBpm + '+' : maxBpm} BPM</strong></td>
@@ -1427,7 +1427,7 @@
                     const pMin = Math.round((z.minBpm / hrMax) * 100);
                     const pMax = Math.round((z.maxBpm / hrMax) * 100);
                     tr.innerHTML = `
-            <td><span class="color-dot" style="background:${z.color}"></span>${z.name}</td>
+            <td><span class="color-dot" style="background:${z.color}"></span>${z.id}. ${z.name}</td>
             <td><input type="number" min="40" max="230" value="${z.minBpm}" data-idx="${idx}" data-field="minBpm"></td>
             <td><input type="number" min="50" max="240" value="${z.maxBpm}" data-idx="${idx}" data-field="maxBpm"></td>
             <td><strong>${pMin}% – ${isLast ? pMax + '%+' : pMax + '%'}</strong></td>
@@ -1721,7 +1721,7 @@
       </trkpt>`).join('');
 
             const gpx = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="Monitor Tetna BLE"
+<gpx version="1.1" creator="HR Monitor"
   xmlns="http://www.topografix.com/GPX/1/1"
   xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">
   <metadata>
