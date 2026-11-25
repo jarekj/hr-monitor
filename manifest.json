@@ -1,6 +1,6 @@
 {
-  "name": "Monitor Tętna BLE",
-  "short_name": "Tętno BLE",
+  "name": "HR Monitor",
+  "short_name": "HR Monitor",
   "description": "Monitor tętna Bluetooth ze strefami i eksportem treningów",
   "start_url": "./index.html",
   "scope": "./",
