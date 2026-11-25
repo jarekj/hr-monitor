@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <title>Monitor Tętna BLE</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --z1: #3b82f6;
+            /* Niebieski */
+            --z2: #22c55e;
+            /* Zielony */
+            --z3: #eab308;
+            /* Żółty */
+            --z4: #f97316;
+            /* Pomarańczowy */
+            --z5: #991b1b;
+            /* Ciemny czerwony */
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+        }
+
+        body:fullscreen {
+            overflow-y: auto;
+            padding: 14px;
+        }
+
+        body:fullscreen .bpm-value {
+            font-size: 5rem;
+        }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            display: grid;
+            gap: 16px;
+        }
+
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #fff;
+            background: #2563eb;
+            transition: opacity 0.15s, transform 0.05s;
+        }
+
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #475569;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+        }
+
+        .btn-warning {
+            background: #d97706;
+        }
+
+        .btn-success {
+            background: #16a34a;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Pasek sterowania treningiem */
+        .workout-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .workout-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
+
+        .status-dot.running {
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .status-dot.paused {
+            background: #eab308;
+        }
+
+        .status-dot.finished {
+            background: #3b82f6;
+        }
+
+        /* Panel użytkownika */
+        .user-panel {
+            border-color: #475569;
+            background: #172033;
+            display: grid;
+            gap: 14px;
+        }
+
+        .panel-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .panel-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mode-switch {
+            display: flex;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .mode-switch button {
+            border-radius: 0;
+            background: transparent;
+            color: var(--muted);
+            padding: 7px 12px;
+            font-size: 0.85rem;
+        }
+
+        .mode-switch button.active {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .profile-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .field-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select {
+            background: #0f172a;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.95rem;
+        }
+
+        .grid-top {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .bpm-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-left: 6px solid var(--muted);
+            transition: border-color 0.2s;
+        }
+
+        .bpm-value {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .bpm-unit {
+            font-size: 1rem;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .zone-badge {
+            margin-top: 10px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: #334155;
+        }
+
+        .stats-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 14px;
+            align-content: center;
+            height: 100%;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .stat-val {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        canvas {
+            width: 100%;
+            height: 340px;
+            display: block;
+            background: #0b1120;
+            border-radius: 8px;
+        }
+
+        /* Podsumowanie czasu w strefach */
+        .zone-summary-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .zone-summary-row {
+            display: grid;
+            grid-template-columns: 210px 1fr 110px;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 640px) {
+            .zone-summary-row {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+        }
+
+        .zone-bar-bg {
+            height: 12px;
+            background: #0f172a;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .zone-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            transition: width 0.25s ease;
+        }
+
+        .zone-time-val {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+        }
+
+        /* Historia treningów */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .history-item {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .history-item.active-preview {
+            border-color: #3b82f6;
+        }
+
+        .history-meta {
+            display: grid;
+            gap: 4px;
+        }
+
+        .history-date {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .history-stats {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="number"] {
+            background: #0f172a;
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            width: 82px;
+            font-size: 0.95rem;
+        }
+
+        .zones-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .zones-table th,
+        .zones-table td {
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .color-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Nagłówek -->
+        <header>
+            <div>
+                <h1>Monitor Tętna Bluetooth (BLE)</h1>
+                <div id="bleStatusText" class="status-text">Czujnik: Rozłączony</div>
+            </div>
+            <div class="controls">
+                <button id="btnConnect">Połącz pasek BLE</button>
+                <button id="btnDemo" class="btn-secondary">Tryb Demo</button>
+                <button id="btnTogglePanel" class="btn-outline">⚙️ Panel użytkownika</button>
+                <button id="btnFullscreen" class="btn-outline">⛶ Pełny ekran</button>
+                <button id="btnInstall" class="btn-success hidden">📲 Zainstaluj</button>
+            </div>
+        </header>
+
+        <!-- Panel użytkownika (ukryty domyślnie) -->
+        <section id="userPanel" class="card user-panel hidden">
+            <div class="panel-header">
+                <div>
+                    <h2 style="margin:0; font-size:1.1rem;">Panel użytkownika — HR max, profil i strefy</h2>
+                    <div class="status-text">Ustawienia zapisują się automatycznie w pamięci przeglądarki</div>
+                </div>
+                <div class="panel-actions">
+                    <div class="mode-switch" role="group" aria-label="Tryb definiowania stref">
+                        <button id="modePctBtn" class="active">Procenty (% HR max)</button>
+                        <button id="modeBpmBtn">Wartości nominalne (BPM)</button>
+                    </div>
+                    <button id="btnResetSettings" class="btn-outline btn-sm">Przywróć domyślne</button>
+                </div>
+            </div>
+
+            <div class="profile-inputs">
+                <div class="field-group">
+                    <label for="hrMaxInput"><strong>HR max (BPM):</strong></label>
+                    <input type="number" id="hrMaxInput" value="190" min="100" max="240" />
+                </div>
+                <div class="field-group">
+                    <label for="genderInput"><strong>Płeć:</strong></label>
+                    <select id="genderInput">
+                        <option value="male">Mężczyzna</option>
+                        <option value="female">Kobieta</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="weightInput"><strong>Waga (kg):</strong></label>
+                    <input type="number" id="weightInput" value="75" min="30" max="250" />
+                </div>
+                <div class="field-group">
+                    <label for="ageInput"><strong>Wiek (lata):</strong></label>
+                    <input type="number" id="ageInput" value="30" min="10" max="100" />
+                </div>
+            </div>
+
+            <table class="zones-table">
+                <thead>
+                    <tr>
+                        <th>Strefa</th>
+                        <th id="colFromHeader">Od (%)</th>
+                        <th id="colToHeader">Do (%)</th>
+                        <th id="colPreviewHeader">Zakres (BPM)</th>
+                    </tr>
+                </thead>
+                <tbody id="zonesBody"></tbody>
+            </table>
+        </section>
+
+        <!-- Sterowanie rejestracją treningu -->
+        <section class="card workout-bar">
+            <div class="workout-status">
+                <span id="workoutDot" class="status-dot"></span>
+                <span id="workoutStateText">Trening: Gotowy do startu</span>
+            </div>
+            <div class="controls">
+                <button id="btnStart" class="btn-success">▶ Start</button>
+                <button id="btnPause" class="btn-warning" disabled>⏸ Pauza</button>
+                <button id="btnFinish" class="btn-secondary" disabled>⏹ Zakończ trening</button>
+                <button id="btnReset" class="btn-danger" disabled>↺ Reset</button>
+                <button id="btnExportCsv" disabled>⬇ CSV</button>
+                <button id="btnExportTcx" disabled>⬇ TCX</button>
+                <button id="btnExportGpx" disabled>⬇ GPX</button>
+            </div>
+        </section>
+
+        <!-- Bieżące tętno i statystyki -->
+        <section class="grid-top">
+            <div id="bpmCard" class="card bpm-box">
+                <div id="bpmValue" class="bpm-value">--</div>
+                <div class="bpm-unit">BPM (<span id="pctValue">0</span>% HR max)</div>
+                <div id="zoneBadge" class="zone-badge">Brak danych</div>
+            </div>
+
+            <div class="card">
+                <div class="stats-list">
+                    <div>
+                        <div class="stat-label">Czas treningu</div>
+                        <div id="statTime" class="stat-val">00:00</div>
+                    </div>
+                    <div>
+                        <div class="stat-label">Spalone kalorie</div>
+                        <div id="statKcal" class="stat-val">0 kcal</div>
+                    </div>
+                    <div>
+                        <div class="stat-label">Średnie tętno</div>
+                        <div id="statAvg" class="stat-val">--</div>
+                    </div>
+                    <div>
+                        <div class="stat-label">Maksymalne tętno</div>
+                        <div id="statMax" class="stat-val">--</div>
+                    </div>
+                    <div>
+                        <div class="stat-label">Zapisane próbki</div>
+                        <div id="statCount" class="stat-val">0</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Wykres -->
+        <section class="card">
+            <h2 style="margin-top:0; font-size:1.1rem;">Wykres tętna w czasie treningu</h2>
+            <canvas id="hrChart"></canvas>
+        </section>
+
+        <!-- Podsumowanie czasu w strefach -->
+        <section class="card">
+            <h2 style="margin:0; font-size:1.1rem;">Czas spędzony w strefach tętna</h2>
+            <div id="zoneSummaryList" class="zone-summary-list"></div>
+        </section>
+
+        <!-- Historia treningów -->
+        <section class="card">
+            <div class="history-header">
+                <h2 style="margin:0; font-size:1.1rem;">Historia zakończonych treningów</h2>
+                <button id="btnClearHistory" class="btn-danger btn-sm hidden">Wyczyść historię</button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+        </section>
+    </div>
+
+    <script>
+        const HISTORY_STORAGE_KEY = 'ble_hr_workout_history_v1';
+        const SETTINGS_STORAGE_KEY = 'ble_hr_user_settings_v1';
+
+        const DEFAULT_HR_MAX = 190;
+        const DEFAULT_GENDER = 'male';
+        const DEFAULT_WEIGHT = 75;
+        const DEFAULT_AGE = 30;
+        const DEFAULT_ZONE_MODE = 'pct';
+        const DEFAULT_ZONES = [
+            { id: 1, name: 'Strefa 1 (Niebieska)', minPct: 50, maxPct: 60, minBpm: 95, maxBpm: 114, color: '#3b82f6' },
+            { id: 2, name: 'Strefa 2 (Zielona)', minPct: 60, maxPct: 70, minBpm: 114, maxBpm: 133, color: '#22c55e' },
+            { id: 3, name: 'Strefa 3 (Żółta)', minPct: 70, maxPct: 80, minBpm: 133, maxBpm: 152, color: '#eab308' },
+            { id: 4, name: 'Strefa 4 (Pomarańczowa)', minPct: 80, maxPct: 90, minBpm: 152, maxBpm: 171, color: '#f97316' },
+            { id: 5, name: 'Strefa 5 (Ciemnoczerwona)', minPct: 90, maxPct: 100, minBpm: 171, maxBpm: 190, color: '#991b1b' }
+        ];
+
+        // --- Profil i strefy tętna ---
+        let hrMax = DEFAULT_HR_MAX;
+        let userGender = DEFAULT_GENDER;
+        let userWeightKg = DEFAULT_WEIGHT;
+        let userAge = DEFAULT_AGE;
+        let zoneMode = DEFAULT_ZONE_MODE;
+        let zones = DEFAULT_ZONES.map(z => ({ ...z }));
+
+        // --- Stan treningu ---
+        let workoutState = 'IDLE'; // 'IDLE' | 'RUNNING' | 'PAUSED' | 'FINISHED'
+        let accumulatedMs = 0;
+        let lastResumeTime = null;
+        let timerInterval = null;
+        let samples = []; // { time, elapsedMs, elapsedSec, bpm, pct, zoneId, totalKcal }
+        let activePreviewId = null;
+
+        let bleDevice = null;
+        let demoInterval = null;
+        let wakeLock = null;
+        let deferredInstallPrompt = null;
+
+        // --- Elementy DOM ---
+        const userPanel = document.getElementById('userPanel');
+        const btnTogglePanel = document.getElementById('btnTogglePanel');
+        const btnFullscreen = document.getElementById('btnFullscreen');
+        const btnInstall = document.getElementById('btnInstall');
+        const modePctBtn = document.getElementById('modePctBtn');
+        const modeBpmBtn = document.getElementById('modeBpmBtn');
+        const btnResetSettings = document.getElementById('btnResetSettings');
+        const hrMaxInput = document.getElementById('hrMaxInput');
+        const genderInput = document.getElementById('genderInput');
+        const weightInput = document.getElementById('weightInput');
+        const ageInput = document.getElementById('ageInput');
+        const zonesBody = document.getElementById('zonesBody');
+        const colFromHeader = document.getElementById('colFromHeader');
+        const colToHeader = document.getElementById('colToHeader');
+        const colPreviewHeader = document.getElementById('colPreviewHeader');
+
+        const bleStatusText = document.getElementById('bleStatusText');
+        const workoutDot = document.getElementById('workoutDot');
+        const workoutStateText = document.getElementById('workoutStateText');
+
+        const btnConnect = document.getElementById('btnConnect');
+        const btnDemo = document.getElementById('btnDemo');
+        const btnStart = document.getElementById('btnStart');
+        const btnPause = document.getElementById('btnPause');
+        const btnFinish = document.getElementById('btnFinish');
+        const btnReset = document.getElementById('btnReset');
+        const btnExportCsv = document.getElementById('btnExportCsv');
+        const btnExportTcx = document.getElementById('btnExportTcx');
+        const btnExportGpx = document.getElementById('btnExportGpx');
+
+        const bpmValueEl = document.getElementById('bpmValue');
+        const pctValueEl = document.getElementById('pctValue');
+        const zoneBadgeEl = document.getElementById('zoneBadge');
+        const bpmCardEl = document.getElementById('bpmCard');
+        const statTimeEl = document.getElementById('statTime');
+        const statKcalEl = document.getElementById('statKcal');
+        const statAvgEl = document.getElementById('statAvg');
+        const statMaxEl = document.getElementById('statMax');
+        const statCountEl = document.getElementById('statCount');
+        const zoneSummaryList = document.getElementById('zoneSummaryList');
+        const historyList = document.getElementById('historyList');
+        const btnClearHistory = document.getElementById('btnClearHistory');
+        const canvas = document.getElementById('hrChart');
+        const ctx = canvas.getContext('2d');
+
+        function setExportButtonsDisabled(disabled) {
+            btnExportCsv.disabled = disabled;
+            btnExportTcx.disabled = disabled;
+            btnExportGpx.disabled = disabled;
+        }
+
+        // --- Obliczanie kalorii (wzór Keytela, kcal/min) ---
+        function getKcalPerMinute(bpm) {
+            let kcalMin;
+            if (userGender === 'female') {
+                kcalMin = (-20.4022 + (0.4472 * bpm) - (0.1263 * userWeightKg) + (0.074 * userAge)) / 4.184;
+            } else {
+                kcalMin = (-55.0969 + (0.6309 * bpm) + (0.1988 * userWeightKg) + (0.2017 * userAge)) / 4.184;
+            }
+            return Math.max(0, kcalMin);
+        }
+
+        function recalculateCaloriesFromSamples() {
+            let total = 0;
+            for (let i = 0; i < samples.length; i++) {
+                const prevMs = i === 0 ? 0 : samples[i - 1].elapsedMs;
+                const dtMin = Math.max(0, samples[i].elapsedMs - prevMs) / 60000;
+                total += getKcalPerMinute(samples[i].bpm) * dtMin;
+                samples[i].totalKcal = Number(total.toFixed(1));
+            }
+            return Math.round(total);
+        }
+
+        // --- PWA: Service Worker + Instalacja ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch((err) => {
+                    console.warn('Rejestracja Service Workera nie powiodła się:', err);
+                });
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            btnInstall.classList.remove('hidden');
+        });
+
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+            btnInstall.classList.add('hidden');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            btnInstall.classList.add('hidden');
+            deferredInstallPrompt = null;
+        });
+
+        // --- Tryb pełnoekranowy i Wake Lock ---
+        async function requestWakeLock() {
+            if (!('wakeLock' in navigator) || wakeLock) return;
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                wakeLock.addEventListener('release', () => {
+                    wakeLock = null;
+                });
+            } catch (err) {
+                console.warn('Wake Lock niedostępny:', err.message);
+            }
+        }
+
+        async function releaseWakeLock() {
+            if (!wakeLock) return;
+            try {
+                await wakeLock.release();
+                wakeLock = null;
+            } catch (err) {
+                console.warn('Błąd zwalniania Wake Lock:', err.message);
+            }
+        }
+
+        function updateFullscreenButton() {
+            const isFs = Boolean(document.fullscreenElement);
+            btnFullscreen.textContent = isFs ? '✕ Wyjdź z pełnego ekranu' : '⛶ Pełny ekran';
+            setTimeout(drawChart, 50);
+        }
+
+        btnFullscreen.addEventListener('click', async () => {
+            try {
+                if (!document.fullscreenElement) {
+                    await document.documentElement.requestFullscreen();
+                    await requestWakeLock();
+                } else {
+                    await document.exitFullscreen();
+                    if (workoutState !== 'RUNNING') await releaseWakeLock();
+                }
+            } catch (err) {
+                alert('Przeglądarka nie pozwoliła na włączenie trybu pełnoekranowego.');
+            }
+        });
+
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && (workoutState === 'RUNNING' || document.fullscreenElement)) {
+                requestWakeLock();
+            }
+        });
+
+        // --- Zapis i odczyt ustawień (localStorage) ---
+        function saveSettings() {
+            try {
+                const payload = {
+                    hrMax,
+                    userGender,
+                    userWeightKg,
+                    userAge,
+                    zoneMode,
+                    zones: zones.map(z => ({
+                        id: z.id,
+                        minPct: z.minPct,
+                        maxPct: z.maxPct,
+                        minBpm: z.minBpm,
+                        maxBpm: z.maxBpm
+                    }))
+                };
+                localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(payload));
+            } catch (err) {
+                console.error('Błąd zapisu ustawień:', err);
+            }
+        }
+
+        function applySettingsUI() {
+            hrMaxInput.value = hrMax;
+            genderInput.value = userGender;
+            weightInput.value = userWeightKg;
+            ageInput.value = userAge;
+            if (zoneMode === 'pct') {
+                modePctBtn.classList.add('active');
+                modeBpmBtn.classList.remove('active');
+            } else {
+                modeBpmBtn.classList.add('active');
+                modePctBtn.classList.remove('active');
+            }
+        }
+
+        function loadSettings() {
+            try {
+                const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+                if (!raw) {
+                    syncBpmFromPct();
+                    applySettingsUI();
+                    return;
+                }
+                const saved = JSON.parse(raw);
+                if (typeof saved.hrMax === 'number' && saved.hrMax >= 100 && saved.hrMax <= 240) {
+                    hrMax = saved.hrMax;
+                }
+                if (saved.userGender === 'male' || saved.userGender === 'female') {
+                    userGender = saved.userGender;
+                }
+                if (typeof saved.userWeightKg === 'number' && saved.userWeightKg >= 30 && saved.userWeightKg <= 250) {
+                    userWeightKg = saved.userWeightKg;
+                }
+                if (typeof saved.userAge === 'number' && saved.userAge >= 10 && saved.userAge <= 100) {
+                    userAge = saved.userAge;
+                }
+                if (saved.zoneMode === 'pct' || saved.zoneMode === 'bpm') {
+                    zoneMode = saved.zoneMode;
+                }
+                if (Array.isArray(saved.zones)) {
+                    zones.forEach(z => {
+                        const match = saved.zones.find(sz => sz.id === z.id);
+                        if (match) {
+                            if (typeof match.minPct === 'number') z.minPct = match.minPct;
+                            if (typeof match.maxPct === 'number') z.maxPct = match.maxPct;
+                            if (typeof match.minBpm === 'number') z.minBpm = match.minBpm;
+                            if (typeof match.maxBpm === 'number') z.maxBpm = match.maxBpm;
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('Błąd odczytu ustawień:', err);
+                syncBpmFromPct();
+            }
+            applySettingsUI();
+        }
+
+        btnResetSettings.addEventListener('click', () => {
+            hrMax = DEFAULT_HR_MAX;
+            userGender = DEFAULT_GENDER;
+            userWeightKg = DEFAULT_WEIGHT;
+            userAge = DEFAULT_AGE;
+            zoneMode = DEFAULT_ZONE_MODE;
+            zones = DEFAULT_ZONES.map(z => ({ ...z }));
+            syncBpmFromPct();
+            saveSettings();
+            applySettingsUI();
+            renderZonesTable();
+            drawChart();
+            renderZoneSummary();
+            if (samples.length) {
+                statKcalEl.textContent = `${recalculateCaloriesFromSamples()} kcal`;
+            }
+        });
+
+        // --- Pomocnicze funkcje czasu ---
+        function formatDuration(totalSec) {
+            const hrs = Math.floor(totalSec / 3600);
+            const mins = Math.floor((totalSec % 3600) / 60);
+            const secs = totalSec % 60;
+            const mm = String(mins).padStart(2, '0');
+            const ss = String(secs).padStart(2, '0');
+            return hrs > 0 ? `${hrs}:${mm}:${ss}` : `${mm}:${ss}`;
+        }
+
+        function getActiveElapsedMs() {
+            if (workoutState === 'RUNNING' && lastResumeTime !== null) {
+                return accumulatedMs + (Date.now() - lastResumeTime);
+            }
+            return accumulatedMs;
+        }
+
+        // --- Logika stref ---
+        function syncBpmFromPct() {
+            zones.forEach(z => {
+                z.minBpm = Math.round((hrMax * z.minPct) / 100);
+                z.maxBpm = Math.round((hrMax * z.maxPct) / 100);
+            });
+        }
+
+        function syncPctFromBpm() {
+            zones.forEach(z => {
+                z.minPct = Math.round((z.minBpm / hrMax) * 100);
+                z.maxPct = Math.round((z.maxBpm / hrMax) * 100);
+            });
+        }
+
+        function getZoneBoundsBpm(z) {
+            if (zoneMode === 'pct') {
+                return {
+                    minBpm: Math.round((hrMax * z.minPct) / 100),
+                    maxBpm: Math.round((hrMax * z.maxPct) / 100)
+                };
+            }
+            return { minBpm: z.minBpm, maxBpm: z.maxBpm };
+        }
+
+        function getZoneForBpm(bpm) {
+            for (let i = zones.length - 1; i >= 0; i--) {
+                const { minBpm } = getZoneBoundsBpm(zones[i]);
+                if (bpm >= minBpm) return zones[i];
+            }
+            return { id: 0, name: 'Poniżej Strefy 1', color: '#94a3b8' };
+        }
+
+        // --- Podsumowanie czasu w strefach ---
+        function renderZoneSummary() {
+            const msByZone = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            let totalMs = 0;
+
+            for (let i = 0; i < samples.length; i++) {
+                const prevMs = i === 0 ? 0 : samples[i - 1].elapsedMs;
+                const dt = Math.max(0, samples[i].elapsedMs - prevMs);
+                const zId = getZoneForBpm(samples[i].bpm).id;
+                msByZone[zId] = (msByZone[zId] || 0) + dt;
+                totalMs += dt;
+            }
+
+            const displayZones = [
+                ...zones,
+                { id: 0, name: 'Poniżej Strefy 1', color: '#94a3b8' }
+            ];
+
+            zoneSummaryList.innerHTML = '';
+            displayZones.forEach(z => {
+                const zMs = msByZone[z.id] || 0;
+                const pct = totalMs > 0 ? Math.round((zMs / totalMs) * 100) : 0;
+                const sec = Math.round(zMs / 1000);
+
+                const row = document.createElement('div');
+                row.className = 'zone-summary-row';
+                row.innerHTML = `
+          <div><span class="color-dot" style="background:${z.color}"></span>${z.name}</div>
+          <div class="zone-bar-bg">
+            <div class="zone-bar-fill" style="width:${pct}%; background:${z.color};"></div>
+          </div>
+          <div class="zone-time-val">${formatDuration(sec)} (${pct}%)</div>
+        `;
+                zoneSummaryList.appendChild(row);
+            });
+        }
+
+        // --- Historia treningów (localStorage) ---
+        function getStoredHistory() {
+            try {
+                const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function setStoredHistory(items) {
+            try {
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(items));
+            } catch (err) {
+                console.error('Błąd zapisu historii:', err);
+                alert('Nie udało się zapisać treningu w pamięci przeglądarki (brak miejsca).');
+            }
+        }
+
+        function saveCurrentWorkoutToHistory() {
+            if (!samples.length) return;
+            const bpms = samples.map(s => s.bpm);
+            const avgBpm = Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
+            const maxBpm = Math.max(...bpms);
+            const durationMs = accumulatedMs;
+            const calories = recalculateCaloriesFromSamples();
+
+            const entry = {
+                id: String(Date.now()),
+                createdAt: new Date().toISOString(),
+                durationMs,
+                avgBpm,
+                maxBpm,
+                calories,
+                hrMaxUsed: hrMax,
+                sampleCount: samples.length,
+                samples: samples.map(s => ({
+                    time: s.time.toISOString(),
+                    elapsedMs: s.elapsedMs,
+                    elapsedSec: s.elapsedSec,
+                    bpm: s.bpm,
+                    pct: s.pct,
+                    zoneId: s.zoneId,
+                    totalKcal: s.totalKcal || 0
+                }))
+            };
+
+            const history = getStoredHistory();
+            history.unshift(entry);
+            setStoredHistory(history);
+            activePreviewId = entry.id;
+            renderHistory();
+        }
+
+        function loadWorkoutFromHistory(id) {
+            if (workoutState === 'RUNNING' || workoutState === 'PAUSED') {
+                alert('Zakończ lub zresetuj bieżący trening przed wczytaniem zapisu z historii.');
+                return;
+            }
+            const history = getStoredHistory();
+            const entry = history.find(item => item.id === id);
+            if (!entry) return;
+
+            clearInterval(timerInterval);
+            workoutState = 'FINISHED';
+            accumulatedMs = entry.durationMs;
+            lastResumeTime = null;
+            activePreviewId = entry.id;
+
+            samples = entry.samples.map(s => ({
+                ...s,
+                time: new Date(s.time)
+            }));
+
+            const kcal = typeof entry.calories === 'number'
+                ? entry.calories
+                : recalculateCaloriesFromSamples();
+
+            statTimeEl.textContent = formatDuration(Math.floor(accumulatedMs / 1000));
+            statKcalEl.textContent = `${kcal} kcal`;
+            statAvgEl.textContent = `${entry.avgBpm} BPM`;
+            statMaxEl.textContent = `${entry.maxBpm} BPM`;
+            statCountEl.textContent = entry.sampleCount;
+
+            updateWorkoutUI();
+            workoutStateText.textContent = `Trening: Podgląd z historii (${new Date(entry.createdAt).toLocaleString('pl-PL')})`;
+            drawChart();
+            renderZoneSummary();
+            renderHistory();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteWorkoutFromHistory(id) {
+            const history = getStoredHistory().filter(item => item.id !== id);
+            setStoredHistory(history);
+            if (activePreviewId === id) activePreviewId = null;
+            renderHistory();
+        }
+
+        btnClearHistory.addEventListener('click', () => {
+            if (confirm('Czy na pewno usunąć całą historię zapisanych treningów?')) {
+                localStorage.removeItem(HISTORY_STORAGE_KEY);
+                activePreviewId = null;
+                renderHistory();
+            }
+        });
+
+        function renderHistory() {
+            const history = getStoredHistory();
+            historyList.innerHTML = '';
+
+            if (!history.length) {
+                btnClearHistory.classList.add('hidden');
+                historyList.innerHTML = '<div class="status-text">Brak zapisanych treningów. Zakończ trening, aby zapisać go w historii.</div>';
+                return;
+            }
+
+            btnClearHistory.classList.remove('hidden');
+            history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `history-item ${activePreviewId === item.id ? 'active-preview' : ''}`;
+                const dateLabel = new Date(item.createdAt).toLocaleString('pl-PL');
+                const durLabel = formatDuration(Math.floor(item.durationMs / 1000));
+                const kcalText = typeof item.calories === 'number' ? ` &bull; Kalorie: <strong>${item.calories} kcal</strong>` : '';
+
+                div.innerHTML = `
+          <div class="history-meta">
+            <div class="history-date">${dateLabel}</div>
+            <div class="history-stats">
+              Czas: <strong>${durLabel}</strong> &bull;
+              Śr. tętno: <strong>${item.avgBpm} BPM</strong> &bull;
+              Maks.: <strong>${item.maxBpm} BPM</strong>${kcalText} &bull;
+              Próbki: ${item.sampleCount}
+            </div>
+          </div>
+          <div class="history-actions">
+            <button class="btn-outline btn-sm" data-action="load" data-id="${item.id}">👁️ Podgląd</button>
+            <button class="btn-danger btn-sm" data-action="delete" data-id="${item.id}">🗑️ Usuń</button>
+          </div>
+        `;
+                historyList.appendChild(div);
+            });
+
+            historyList.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const { action, id } = btn.dataset;
+                    if (action === 'load') loadWorkoutFromHistory(id);
+                    if (action === 'delete') deleteWorkoutFromHistory(id);
+                });
+            });
+        }
+
+        // --- Panel użytkownika i tabela stref ---
+        btnTogglePanel.addEventListener('click', () => {
+            userPanel.classList.toggle('hidden');
+        });
+
+        modePctBtn.addEventListener('click', () => {
+            if (zoneMode === 'pct') return;
+            syncPctFromBpm();
+            zoneMode = 'pct';
+            applySettingsUI();
+            saveSettings();
+            renderZonesTable();
+            drawChart();
+            renderZoneSummary();
+        });
+
+        modeBpmBtn.addEventListener('click', () => {
+            if (zoneMode === 'bpm') return;
+            syncBpmFromPct();
+            zoneMode = 'bpm';
+            applySettingsUI();
+            saveSettings();
+            renderZonesTable();
+            drawChart();
+            renderZoneSummary();
+        });
+
+        hrMaxInput.addEventListener('input', () => {
+            const val = Number(hrMaxInput.value);
+            if (val >= 100 && val <= 240) {
+                hrMax = val;
+                if (zoneMode === 'pct') syncBpmFromPct();
+                else syncPctFromBpm();
+                saveSettings();
+                renderZonesTable();
+                drawChart();
+                renderZoneSummary();
+            }
+        });
+
+        genderInput.addEventListener('change', () => {
+            userGender = genderInput.value;
+            saveSettings();
+            if (samples.length) statKcalEl.textContent = `${recalculateCaloriesFromSamples()} kcal`;
+        });
+
+        weightInput.addEventListener('input', () => {
+            const val = Number(weightInput.value);
+            if (val >= 30 && val <= 250) {
+                userWeightKg = val;
+                saveSettings();
+                if (samples.length) statKcalEl.textContent = `${recalculateCaloriesFromSamples()} kcal`;
+            }
+        });
+
+        ageInput.addEventListener('input', () => {
+            const val = Number(ageInput.value);
+            if (val >= 10 && val <= 100) {
+                userAge = val;
+                saveSettings();
+                if (samples.length) statKcalEl.textContent = `${recalculateCaloriesFromSamples()} kcal`;
+            }
+        });
+
+        function renderZonesTable() {
+            if (zoneMode === 'pct') {
+                colFromHeader.textContent = 'Od (%)';
+                colToHeader.textContent = 'Do (%)';
+                colPreviewHeader.textContent = 'Wyliczony zakres (BPM)';
+            } else {
+                colFromHeader.textContent = 'Od (BPM)';
+                colToHeader.textContent = 'Do (BPM)';
+                colPreviewHeader.textContent = 'Odpowiednik (% HR max)';
+            }
+
+            zonesBody.innerHTML = '';
+            zones.forEach((z, idx) => {
+                const isLast = idx === zones.length - 1;
+                const tr = document.createElement('tr');
+
+                if (zoneMode === 'pct') {
+                    const { minBpm, maxBpm } = getZoneBoundsBpm(z);
+                    tr.innerHTML = `
+            <td><span class="color-dot" style="background:${z.color}"></span>${z.name}</td>
+            <td><input type="number" min="30" max="100" value="${z.minPct}" data-idx="${idx}" data-field="minPct"></td>
+            <td><input type="number" min="40" max="110" value="${z.maxPct}" data-idx="${idx}" data-field="maxPct"></td>
+            <td><strong>${minBpm} – ${isLast ? maxBpm + '+' : maxBpm} BPM</strong></td>
+          `;
+                } else {
+                    const pMin = Math.round((z.minBpm / hrMax) * 100);
+                    const pMax = Math.round((z.maxBpm / hrMax) * 100);
+                    tr.innerHTML = `
+            <td><span class="color-dot" style="background:${z.color}"></span>${z.name}</td>
+            <td><input type="number" min="40" max="230" value="${z.minBpm}" data-idx="${idx}" data-field="minBpm"></td>
+            <td><input type="number" min="50" max="240" value="${z.maxBpm}" data-idx="${idx}" data-field="maxBpm"></td>
+            <td><strong>${pMin}% – ${isLast ? pMax + '%+' : pMax + '%'}</strong></td>
+          `;
+                }
+                zonesBody.appendChild(tr);
+            });
+
+            zonesBody.querySelectorAll('input').forEach(inp => {
+                inp.addEventListener('change', (e) => {
+                    const i = Number(e.target.dataset.idx);
+                    const field = e.target.dataset.field;
+                    zones[i][field] = Number(e.target.value);
+                    if (zoneMode === 'pct') syncBpmFromPct();
+                    else syncPctFromBpm();
+                    saveSettings();
+                    renderZonesTable();
+                    drawChart();
+                    renderZoneSummary();
+                });
+            });
+        }
+
+        // --- Sterowanie stanem treningu ---
+        function updateWorkoutUI() {
+            workoutDot.className = 'status-dot';
+            if (workoutState === 'IDLE') {
+                workoutStateText.textContent = 'Trening: Gotowy do startu';
+                btnStart.textContent = '▶ Start';
+                btnStart.disabled = false;
+                btnPause.disabled = true;
+                btnFinish.disabled = true;
+                btnReset.disabled = samples.length === 0;
+            } else if (workoutState === 'RUNNING') {
+                workoutDot.classList.add('running');
+                workoutStateText.textContent = 'Trening: W trakcie (rejestrowanie)';
+                btnStart.textContent = '▶ Start';
+                btnStart.disabled = true;
+                btnPause.disabled = false;
+                btnFinish.disabled = false;
+                btnReset.disabled = false;
+            } else if (workoutState === 'PAUSED') {
+                workoutDot.classList.add('paused');
+                workoutStateText.textContent = 'Trening: Wstrzymany (Pauza)';
+                btnStart.textContent = '▶ Wznów';
+                btnStart.disabled = false;
+                btnPause.disabled = true;
+                btnFinish.disabled = false;
+                btnReset.disabled = false;
+            } else if (workoutState === 'FINISHED') {
+                workoutDot.classList.add('finished');
+                workoutStateText.textContent = 'Trening: Zakończony (zapisano w historii)';
+                btnStart.textContent = '▶ Start';
+                btnStart.disabled = true;
+                btnPause.disabled = true;
+                btnFinish.disabled = true;
+                btnReset.disabled = false;
+            }
+            setExportButtonsDisabled(samples.length === 0);
+        }
+
+        btnStart.addEventListener('click', () => {
+            if (workoutState === 'IDLE' || workoutState === 'PAUSED') {
+                activePreviewId = null;
+                workoutState = 'RUNNING';
+                lastResumeTime = Date.now();
+                requestWakeLock();
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    const sec = Math.floor(getActiveElapsedMs() / 1000);
+                    statTimeEl.textContent = formatDuration(sec);
+                }, 250);
+                updateWorkoutUI();
+                renderHistory();
+            }
+        });
+
+        btnPause.addEventListener('click', () => {
+            if (workoutState === 'RUNNING') {
+                accumulatedMs += Date.now() - lastResumeTime;
+                lastResumeTime = null;
+                workoutState = 'PAUSED';
+                clearInterval(timerInterval);
+                updateWorkoutUI();
+            }
+        });
+
+        btnFinish.addEventListener('click', () => {
+            if (workoutState === 'RUNNING') {
+                accumulatedMs += Date.now() - lastResumeTime;
+                lastResumeTime = null;
+            }
+            clearInterval(timerInterval);
+            workoutState = 'FINISHED';
+            if (!document.fullscreenElement) releaseWakeLock();
+            statTimeEl.textContent = formatDuration(Math.floor(accumulatedMs / 1000));
+            saveCurrentWorkoutToHistory();
+            updateWorkoutUI();
+            drawChart();
+            renderZoneSummary();
+        });
+
+        btnReset.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            workoutState = 'IDLE';
+            accumulatedMs = 0;
+            lastResumeTime = null;
+            samples = [];
+            activePreviewId = null;
+            if (!document.fullscreenElement) releaseWakeLock();
+            statTimeEl.textContent = '00:00';
+            statKcalEl.textContent = '0 kcal';
+            statAvgEl.textContent = '--';
+            statMaxEl.textContent = '--';
+            statCountEl.textContent = '0';
+            updateWorkoutUI();
+            drawChart();
+            renderZoneSummary();
+            renderHistory();
+        });
+
+        // --- Odbiór tętna ---
+        function handleHeartRate(bpm) {
+            const pct = Math.round((bpm / hrMax) * 100);
+            const zone = getZoneForBpm(bpm);
+
+            bpmValueEl.textContent = bpm;
+            pctValueEl.textContent = pct;
+            zoneBadgeEl.textContent = zone.name;
+            zoneBadgeEl.style.background = zone.color;
+            bpmCardEl.style.borderLeftColor = zone.color;
+
+            if (workoutState !== 'RUNNING') return;
+
+            const elapsedMs = getActiveElapsedMs();
+            const elapsedSec = Math.round(elapsedMs / 1000);
+            samples.push({ time: new Date(), elapsedMs, elapsedSec, bpm, pct, zoneId: zone.id, totalKcal: 0 });
+
+            const totalKcal = recalculateCaloriesFromSamples();
+            const bpms = samples.map(s => s.bpm);
+            const avg = Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
+            const max = Math.max(...bpms);
+
+            statKcalEl.textContent = `${totalKcal} kcal`;
+            statAvgEl.textContent = `${avg} BPM`;
+            statMaxEl.textContent = `${max} BPM`;
+            statCountEl.textContent = samples.length;
+            setExportButtonsDisabled(false);
+
+            drawChart();
+            renderZoneSummary();
+        }
+
+        // --- Web Bluetooth API ---
+        btnConnect.addEventListener('click', async () => {
+            if (!navigator.bluetooth) {
+                alert('Twoja przeglądarka nie obsługuje Web Bluetooth. Użyj Chrome, Edge lub Opera (HTTPS lub localhost).');
+                return;
+            }
+            try {
+                stopDemo();
+                bleStatusText.textContent = 'Czujnik: Szukanie urządzenia...';
+                bleDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['heart_rate'] }]
+                });
+
+                bleDevice.addEventListener('gattserverdisconnected', () => {
+                    bleStatusText.textContent = 'Czujnik: Rozłączono';
+                });
+
+                const server = await bleDevice.gatt.connect();
+                const service = await server.getPrimaryService('heart_rate');
+                const char = await service.getCharacteristic('heart_rate_measurement');
+
+                await char.startNotifications();
+                char.addEventListener('characteristicvaluechanged', (event) => {
+                    const dv = event.target.value;
+                    const flags = dv.getUint8(0);
+                    const is16Bit = (flags & 0x01) !== 0;
+                    const bpm = is16Bit ? dv.getUint16(1, true) : dv.getUint8(1);
+                    handleHeartRate(bpm);
+                });
+
+                bleStatusText.textContent = `Czujnik: Połączono z "${bleDevice.name || 'Pasek HR'}"`;
+            } catch (err) {
+                console.error(err);
+                bleStatusText.textContent = `Czujnik: Błąd (${err.message})`;
+            }
+        });
+
+        // --- Tryb Demo ---
+        function stopDemo() {
+            if (demoInterval) {
+                clearInterval(demoInterval);
+                demoInterval = null;
+                btnDemo.textContent = 'Tryb Demo';
+            }
+        }
+
+        btnDemo.addEventListener('click', () => {
+            if (demoInterval) {
+                stopDemo();
+                bleStatusText.textContent = 'Czujnik: Zatrzymano tryb Demo';
+                return;
+            }
+            bleStatusText.textContent = 'Czujnik: Tryb Demo aktywny (symulacja tętna)';
+            btnDemo.textContent = 'Zatrzymaj Demo';
+            let simBpm = Math.round(hrMax * 0.56);
+            demoInterval = setInterval(() => {
+                simBpm += Math.floor(Math.random() * 9) - 3;
+                simBpm = Math.max(Math.round(hrMax * 0.48), Math.min(Math.round(hrMax * 0.98), simBpm));
+                handleHeartRate(simBpm);
+            }, 1000);
+        });
+
+        // --- Eksporty (CSV / TCX / GPX) ---
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function getFileTimestamp() {
+            return new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+        }
+
+        btnExportCsv.addEventListener('click', () => {
+            if (!samples.length) return;
+            recalculateCaloriesFromSamples();
+            const header = 'Czas_ISO,Czas_treningu,Sekundy,Tetno_BPM,Procent_HRmax,Strefa,Kalorie_kcal\n';
+            const rows = samples.map(s =>
+                `${s.time.toISOString()},${formatDuration(s.elapsedSec)},${s.elapsedSec},${s.bpm},${s.pct}%,${getZoneForBpm(s.bpm).id},${s.totalKcal ?? 0}`
+            ).join('\n');
+            downloadFile('\uFEFF' + header + rows, `trening_${getFileTimestamp()}.csv`, 'text/csv;charset=utf-8;');
+        });
+
+        btnExportTcx.addEventListener('click', () => {
+            if (!samples.length) return;
+            const startIso = samples[0].time.toISOString();
+            const totalSec = Math.max(1, samples[samples.length - 1].elapsedSec);
+            const bpms = samples.map(s => s.bpm);
+            const avgBpm = Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
+            const maxBpm = Math.max(...bpms);
+            const totalKcal = recalculateCaloriesFromSamples();
+
+            const trackpoints = samples.map(s => `
+          <Trackpoint>
+            <Time>${s.time.toISOString()}</Time>
+            <HeartRateBpm><Value>${s.bpm}</Value></HeartRateBpm>
+          </Trackpoint>`).join('');
+
+            const tcx = `<?xml version="1.0" encoding="UTF-8"?>
+<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2">
+  <Activities>
+    <Activity Sport="Other">
+      <Id>${startIso}</Id>
+      <Lap StartTime="${startIso}">
+        <TotalTimeSeconds>${totalSec}</TotalTimeSeconds>
+        <DistanceMeters>0</DistanceMeters>
+        <Calories>${totalKcal}</Calories>
+        <AverageHeartRateBpm><Value>${avgBpm}</Value></AverageHeartRateBpm>
+        <MaximumHeartRateBpm><Value>${maxBpm}</Value></MaximumHeartRateBpm>
+        <Intensity>Active</Intensity>
+        <TriggerMethod>Manual</TriggerMethod>
+        <Track>${trackpoints}
+        </Track>
+      </Lap>
+    </Activity>
+  </Activities>
+</TrainingCenterDatabase>`;
+
+            downloadFile(tcx, `trening_${getFileTimestamp()}.tcx`, 'application/vnd.garmin.tcx+xml;charset=utf-8;');
+        });
+
+        btnExportGpx.addEventListener('click', () => {
+            if (!samples.length) return;
+            const startIso = samples[0].time.toISOString();
+
+            const trkpts = samples.map(s => `
+      <trkpt lat="0" lon="0">
+        <time>${s.time.toISOString()}</time>
+        <extensions>
+          <gpxtpx:TrackPointExtension>
+            <gpxtpx:hr>${s.bpm}</gpxtpx:hr>
+          </gpxtpx:TrackPointExtension>
+        </extensions>
+      </trkpt>`).join('');
+
+            const gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Monitor Tetna BLE"
+  xmlns="http://www.topografix.com/GPX/1/1"
+  xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">
+  <metadata>
+    <time>${startIso}</time>
+  </metadata>
+  <trk>
+    <name>Trening tetna ${startIso}</name>
+    <trkseg>${trkpts}
+    </trkseg>
+  </trk>
+</gpx>`;
+
+            downloadFile(gpx, `trening_${getFileTimestamp()}.gpx`, 'application/gpx+xml;charset=utf-8;');
+        });
+
+        // --- Rysowanie wykresu z osią czasu (oś X) ---
+        function drawChart() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const w = rect.width;
+            const h = rect.height;
+            const padL = 46, padR = 18, padT = 16, padB = 34;
+            const plotW = w - padL - padR;
+            const plotH = h - padT - padB;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const minY = Math.max(40, Math.round(hrMax * 0.45));
+            const maxY = Math.round(hrMax * 1.05);
+            const yForBpm = (bpm) => padT + plotH - ((bpm - minY) / (maxY - minY)) * plotH;
+
+            // Tła stref
+            zones.forEach((z, idx) => {
+                const bounds = getZoneBoundsBpm(z);
+                const zMin = Math.max(minY, bounds.minBpm);
+                const zMax = idx === zones.length - 1 ? maxY : Math.min(maxY, bounds.maxBpm);
+                if (zMax <= zMin) return;
+                const yTop = yForBpm(zMax);
+                const yBot = yForBpm(zMin);
+                ctx.fillStyle = z.color + '26';
+                ctx.fillRect(padL, yTop, plotW, yBot - yTop);
+            });
+
+            // Siatka pozioma + oś Y (BPM)
+            ctx.strokeStyle = '#334155';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '11px sans-serif';
+            ctx.lineWidth = 1;
+            ctx.textAlign = 'right';
+            for (let bpm = Math.ceil(minY / 20) * 20; bpm <= maxY; bpm += 20) {
+                const y = yForBpm(bpm);
+                ctx.beginPath();
+                ctx.moveTo(padL, y);
+                ctx.lineTo(w - padR, y);
+                ctx.stroke();
+                ctx.fillText(bpm, padL - 6, y + 4);
+            }
+
+            // Oś X (Czas treningu)
+            const maxSec = samples.length > 0
+                ? Math.max(10, samples[samples.length - 1].elapsedSec)
+                : 60;
+            const xForSec = (sec) => padL + (sec / maxSec) * plotW;
+
+            const ticks = 5;
+            ctx.textAlign = 'center';
+            for (let t = 0; t <= ticks; t++) {
+                const secVal = Math.round((maxSec * t) / ticks);
+                const x = xForSec(secVal);
+                ctx.strokeStyle = '#1e293b';
+                ctx.beginPath();
+                ctx.moveTo(x, padT);
+                ctx.lineTo(x, padT + plotH);
+                ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText(formatDuration(secVal), x, h - 10);
+            }
+
+            if (samples.length < 2) {
+                ctx.fillStyle = '#64748b';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('Połącz czujnik (lub Tryb Demo) i kliknij ▶ Start, aby rejestrować wykres', padL + 16, h / 2);
+                return;
+            }
+
+            // Linia tętna w kolorach stref
+            ctx.lineWidth = 2.5;
+            for (let i = 1; i < samples.length; i++) {
+                const prev = samples[i - 1];
+                const curr = samples[i];
+                const x1 = xForSec(prev.elapsedSec);
+                const x2 = xForSec(curr.elapsedSec);
+                const y1 = yForBpm(prev.bpm);
+                const y2 = yForBpm(curr.bpm);
+
+                ctx.strokeStyle = getZoneForBpm(curr.bpm).color;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+        }
+
+        // Inicjalizacja
+        loadSettings();
+        renderZonesTable();
+        updateWorkoutUI();
+        renderZoneSummary();
+        renderHistory();
+        window.addEventListener('resize', drawChart);
+        drawChart();
+    </script>
+</body>
+
+</html>
