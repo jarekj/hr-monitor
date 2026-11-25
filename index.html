@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0f172a" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="./manifest.json" />
@@ -37,14 +37,15 @@
             font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
-            padding: 20px;
+            padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
             max-width: 1080px;
             margin: 0 auto;
             display: grid;
-            gap: 16px;
+            gap: 14px;
         }
 
         header {
@@ -52,12 +53,12 @@
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         h1 {
             margin: 0;
-            font-size: 1.4rem;
+            font-size: 1.35rem;
         }
 
         .controls {
@@ -70,9 +71,11 @@
             border: none;
             border-radius: 8px;
             padding: 9px 14px;
+            min-height: 40px;
             font-weight: 600;
             font-size: 0.9rem;
             cursor: pointer;
+            touch-action: manipulation;
             color: #fff;
             background: #2563eb;
             transition: opacity 0.15s, transform 0.05s;
@@ -114,6 +117,7 @@
         }
 
         .btn-sm {
+            min-height: 32px;
             padding: 6px 10px;
             font-size: 0.8rem;
         }
@@ -122,7 +126,8 @@
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 16px;
+            padding: 14px;
+            min-width: 0;
         }
 
         .hidden {
@@ -133,36 +138,37 @@
         .fs-exit-float {
             display: none;
             position: fixed;
-            top: 10px;
-            right: 10px;
+            top: max(8px, env(safe-area-inset-top));
+            right: max(8px, env(safe-area-inset-right));
             z-index: 9999;
-            background: rgba(15, 23, 42, 0.75);
+            min-height: 32px;
+            background: rgba(15, 23, 42, 0.82);
             border: 1px solid var(--border);
-            color: var(--muted);
+            color: var(--text);
             border-radius: 999px;
-            padding: 6px 11px;
-            font-size: 0.85rem;
+            padding: 5px 11px;
+            font-size: 0.8rem;
             backdrop-filter: blur(4px);
         }
 
-        body:fullscreen {
+        body.is-fullscreen {
             overflow-y: auto;
-            padding: 12px;
+            padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
         }
 
-        body:fullscreen header,
-        body:fullscreen #userPanel,
-        body:fullscreen .workout-bar,
-        body:fullscreen .history-card {
+        body.is-fullscreen header,
+        body.is-fullscreen #userPanel,
+        body.is-fullscreen .workout-bar,
+        body.is-fullscreen .history-card {
             display: none !important;
         }
 
-        body:fullscreen .fs-exit-float {
+        body.is-fullscreen .fs-exit-float {
             display: inline-block;
         }
 
-        body:fullscreen .bpm-value {
-            font-size: 5rem;
+        body.is-fullscreen .bpm-value {
+            font-size: 4.5rem;
         }
 
         /* Pasek sterowania treningiem */
@@ -171,7 +177,7 @@
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .workout-status {
@@ -214,7 +220,7 @@
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             border-bottom: 1px solid var(--border);
             padding-bottom: 10px;
         }
@@ -236,10 +242,11 @@
 
         .mode-switch button {
             border-radius: 0;
+            min-height: 34px;
             background: transparent;
             color: var(--muted);
-            padding: 7px 12px;
-            font-size: 0.85rem;
+            padding: 6px 11px;
+            font-size: 0.82rem;
         }
 
         .mode-switch button.active {
@@ -251,7 +258,7 @@
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 16px;
+            gap: 12px 16px;
         }
 
         .field-group {
@@ -272,7 +279,7 @@
         .grid-top {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
+            gap: 14px;
         }
 
         .bpm-box {
@@ -283,6 +290,12 @@
             text-align: center;
             border-left: 6px solid var(--muted);
             transition: border-color 0.2s;
+        }
+
+        .bpm-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .bpm-value {
@@ -308,25 +321,25 @@
 
         .stats-list {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 12px;
             align-content: center;
             height: 100%;
         }
 
         .stat-label {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--muted);
         }
 
         .stat-val {
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 700;
         }
 
         canvas {
             width: 100%;
-            height: 340px;
+            height: 320px;
             display: block;
             background: #0b1120;
             border-radius: 8px;
@@ -336,22 +349,15 @@
         .zone-summary-list {
             display: grid;
             gap: 10px;
-            margin-top: 12px;
+            margin-top: 10px;
         }
 
         .zone-summary-row {
             display: grid;
-            grid-template-columns: 210px 1fr 110px;
+            grid-template-columns: 205px 1fr 105px;
             align-items: center;
             gap: 12px;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 640px) {
-            .zone-summary-row {
-                grid-template-columns: 1fr;
-                gap: 4px;
-            }
+            font-size: 0.88rem;
         }
 
         .zone-bar-bg {
@@ -431,14 +437,20 @@
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 6px 10px;
-            width: 82px;
+            width: 78px;
             font-size: 0.95rem;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .zones-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
+            min-width: 440px;
         }
 
         .zones-table th,
@@ -450,16 +462,173 @@
 
         .color-dot {
             display: inline-block;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             vertical-align: middle;
             margin-right: 6px;
+            flex-shrink: 0;
         }
 
         .status-text {
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             color: var(--muted);
+        }
+
+        /* Optymalizacja pod telefon w pionie */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                gap: 10px;
+            }
+
+            .card {
+                padding: 12px;
+            }
+
+            h1 {
+                font-size: 1.15rem;
+            }
+
+            button {
+                padding: 8px 11px;
+                font-size: 0.84rem;
+            }
+
+            .bpm-value {
+                font-size: 3.3rem;
+            }
+
+            .stat-val {
+                font-size: 1.15rem;
+            }
+
+            canvas {
+                height: 220px;
+            }
+
+            .zone-summary-row {
+                grid-template-columns: 1fr auto;
+                gap: 4px 8px;
+            }
+
+            .zone-summary-row .zone-bar-bg {
+                grid-column: 1 / -1;
+                order: 3;
+            }
+        }
+
+        /* Optymalizacja pod telefon w poziomie (niska wysokość ekranu) */
+        @media (orientation: landscape) and (max-height: 560px) {
+
+            body,
+            body.is-fullscreen {
+                padding: 8px max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
+            }
+
+            .container {
+                grid-template-columns: minmax(240px, 36%) 1fr;
+                gap: 8px;
+                align-items: stretch;
+            }
+
+            header,
+            #userPanel,
+            .workout-bar,
+            .zones-summary-card,
+            .history-card {
+                grid-column: 1 / -1;
+            }
+
+            .card {
+                padding: 10px 12px;
+            }
+
+            .grid-top {
+                grid-column: 1;
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .bpm-box {
+                flex-direction: row;
+                justify-content: space-between;
+                text-align: left;
+                padding: 10px 14px;
+            }
+
+            .bpm-meta {
+                align-items: flex-end;
+            }
+
+            .bpm-value,
+            body.is-fullscreen .bpm-value {
+                font-size: 2.8rem;
+            }
+
+            .bpm-unit {
+                font-size: 0.85rem;
+                margin-top: 0;
+            }
+
+            .zone-badge {
+                margin-top: 6px;
+                font-size: 0.78rem;
+                padding: 3px 9px;
+            }
+
+            .stats-list {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .stat-label {
+                font-size: 0.7rem;
+            }
+
+            .stat-val {
+                font-size: 1.05rem;
+            }
+
+            .chart-card {
+                grid-column: 2;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .chart-card h2 {
+                font-size: 0.92rem !important;
+                margin-bottom: 6px !important;
+            }
+
+            canvas {
+                height: clamp(160px, calc(100vh - 175px), 250px);
+            }
+
+            .zones-summary-card h2 {
+                font-size: 0.92rem !important;
+            }
+
+            .zone-summary-list {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px 12px;
+                margin-top: 6px;
+            }
+
+            .zone-summary-row {
+                grid-template-columns: 1fr auto;
+                gap: 3px 6px;
+                font-size: 0.76rem;
+            }
+
+            .zone-summary-row .zone-bar-bg {
+                grid-column: 1 / -1;
+                order: 3;
+                height: 8px;
+            }
         }
     </style>
 </head>
@@ -477,7 +646,7 @@
             <div class="controls">
                 <button id="btnConnect">Połącz pasek BLE</button>
                 <button id="btnDemo" class="btn-secondary">Tryb Demo</button>
-                <button id="btnTogglePanel" class="btn-outline">⚙️ Panel użytkownika</button>
+                <button id="btnTogglePanel" class="btn-outline">⚙️ Ustawienia</button>
                 <button id="btnFullscreen" class="btn-outline">⛶ Pełny ekran</button>
                 <button id="btnInstall" class="btn-success hidden">📲 Zainstaluj</button>
             </div>
@@ -521,17 +690,19 @@
                 </div>
             </div>
 
-            <table class="zones-table">
-                <thead>
-                    <tr>
-                        <th>Strefa</th>
-                        <th id="colFromHeader">Od (%)</th>
-                        <th id="colToHeader">Do (%)</th>
-                        <th id="colPreviewHeader">Zakres (BPM)</th>
-                    </tr>
-                </thead>
-                <tbody id="zonesBody"></tbody>
-            </table>
+            <div class="table-wrap">
+                <table class="zones-table">
+                    <thead>
+                        <tr>
+                            <th>Strefa</th>
+                            <th id="colFromHeader">Od (%)</th>
+                            <th id="colToHeader">Do (%)</th>
+                            <th id="colPreviewHeader">Zakres (BPM)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="zonesBody"></tbody>
+                </table>
+            </div>
         </section>
 
         <!-- Sterowanie rejestracją treningu -->
@@ -543,7 +714,7 @@
             <div class="controls">
                 <button id="btnStart" class="btn-success">▶ Start</button>
                 <button id="btnPause" class="btn-warning" disabled>⏸ Pauza</button>
-                <button id="btnFinish" class="btn-secondary" disabled>⏹ Zakończ trening</button>
+                <button id="btnFinish" class="btn-secondary" disabled>⏹ Zakończ</button>
                 <button id="btnReset" class="btn-danger" disabled>↺ Reset</button>
                 <button id="btnExportCsv" disabled>⬇ CSV</button>
                 <button id="btnExportTcx" disabled>⬇ TCX</button>
@@ -555,11 +726,13 @@
         <section class="grid-top">
             <div id="bpmCard" class="card bpm-box">
                 <div id="bpmValue" class="bpm-value">--</div>
-                <div class="bpm-unit">BPM (<span id="pctValue">0</span>% HR max)</div>
-                <div id="zoneBadge" class="zone-badge">Brak danych</div>
+                <div class="bpm-meta">
+                    <div class="bpm-unit">BPM (<span id="pctValue">0</span>% HR max)</div>
+                    <div id="zoneBadge" class="zone-badge">Brak danych</div>
+                </div>
             </div>
 
-            <div class="card">
+            <div class="card stats-card">
                 <div class="stats-list">
                     <div>
                         <div class="stat-label">Czas treningu</div>
@@ -574,11 +747,11 @@
                         <div id="statAvg" class="stat-val">--</div>
                     </div>
                     <div>
-                        <div class="stat-label">Maksymalne tętno</div>
+                        <div class="stat-label">Maks. tętno</div>
                         <div id="statMax" class="stat-val">--</div>
                     </div>
                     <div>
-                        <div class="stat-label">Zapisane próbki</div>
+                        <div class="stat-label">Próbki</div>
                         <div id="statCount" class="stat-val">0</div>
                     </div>
                 </div>
@@ -644,6 +817,7 @@
         let demoInterval = null;
         let wakeLock = null;
         let deferredInstallPrompt = null;
+        let isFullscreenView = false;
 
         // --- Elementy DOM ---
         const userPanel = document.getElementById('userPanel');
@@ -771,36 +945,55 @@
             }
         }
 
-        function updateFullscreenButton() {
-            const isFs = Boolean(document.fullscreenElement);
-            btnFullscreen.textContent = isFs ? '✕ Wyjdź z pełnego ekranu' : '⛶ Pełny ekran';
-            setTimeout(drawChart, 50);
+        function setFullscreenView(active) {
+            isFullscreenView = active;
+            document.body.classList.toggle('is-fullscreen', active);
+            btnFullscreen.textContent = active ? '✕ Wyjdź z pełnego ekranu' : '⛶ Pełny ekran';
+            setTimeout(drawChart, 80);
         }
 
         btnFullscreen.addEventListener('click', async () => {
-            try {
-                if (!document.fullscreenElement) {
-                    await document.documentElement.requestFullscreen();
-                    await requestWakeLock();
-                } else {
-                    await document.exitFullscreen();
-                    if (workoutState !== 'RUNNING') await releaseWakeLock();
+            if (!isFullscreenView) {
+                setFullscreenView(true);
+                await requestWakeLock();
+                if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+                    try {
+                        await document.documentElement.requestFullscreen();
+                    } catch (_) { }
                 }
-            } catch (err) {
-                alert('Przeglądarka nie pozwoliła na włączenie trybu pełnoekranowego.');
-            }
-        });
-
-        btnExitFsFloat.addEventListener('click', async () => {
-            if (document.fullscreenElement) {
-                await document.exitFullscreen();
+            } else {
+                setFullscreenView(false);
+                if (document.fullscreenElement) {
+                    try {
+                        await document.exitFullscreen();
+                    } catch (_) { }
+                }
                 if (workoutState !== 'RUNNING') await releaseWakeLock();
             }
         });
 
-        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        btnExitFsFloat.addEventListener('click', async () => {
+            setFullscreenView(false);
+            if (document.fullscreenElement) {
+                try {
+                    await document.exitFullscreen();
+                } catch (_) { }
+            }
+            if (workoutState !== 'RUNNING') await releaseWakeLock();
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            const nativeFs = Boolean(document.fullscreenElement);
+            if (!nativeFs && isFullscreenView) {
+                setFullscreenView(false);
+                if (workoutState !== 'RUNNING') releaseWakeLock();
+            } else if (nativeFs) {
+                setFullscreenView(true);
+            }
+        });
+
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible' && (workoutState === 'RUNNING' || document.fullscreenElement)) {
+            if (document.visibilityState === 'visible' && (workoutState === 'RUNNING' || isFullscreenView)) {
                 requestWakeLock();
             }
         });
@@ -1329,7 +1522,7 @@
             }
             clearInterval(timerInterval);
             workoutState = 'FINISHED';
-            if (!document.fullscreenElement) releaseWakeLock();
+            if (!isFullscreenView) releaseWakeLock();
             statTimeEl.textContent = formatDuration(Math.floor(accumulatedMs / 1000));
             saveCurrentWorkoutToHistory();
             updateWorkoutUI();
@@ -1344,7 +1537,7 @@
             lastResumeTime = null;
             samples = [];
             activePreviewId = null;
-            if (!document.fullscreenElement) releaseWakeLock();
+            if (!isFullscreenView) releaseWakeLock();
             statTimeEl.textContent = '00:00';
             statKcalEl.textContent = '0 kcal';
             statAvgEl.textContent = '--';
@@ -1548,13 +1741,14 @@
         function drawChart() {
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.scale(dpr, dpr);
 
             const w = rect.width;
             const h = rect.height;
-            const padL = 46, padR = 18, padT = 16, padB = 34;
+            const padL = 42, padR = 14, padT = 14, padB = 30;
             const dotRightOffset = 40;
             const plotW = w - padL - padR;
             const dataW = Math.max(10, plotW - dotRightOffset);
@@ -1611,14 +1805,14 @@
                 ctx.stroke();
 
                 ctx.fillStyle = '#94a3b8';
-                ctx.fillText(formatDuration(secVal), x, h - 10);
+                ctx.fillText(formatDuration(secVal), x, h - 8);
             }
 
             if (samples.length === 0) {
                 ctx.fillStyle = '#64748b';
-                ctx.font = '14px sans-serif';
+                ctx.font = '13px sans-serif';
                 ctx.textAlign = 'left';
-                ctx.fillText('Połącz czujnik (lub Tryb Demo) i kliknij ▶ Start, aby rejestrować wykres', padL + 16, h / 2);
+                ctx.fillText('Połącz czujnik (lub Demo) i kliknij ▶ Start', padL + 12, h / 2);
                 return;
             }
 
@@ -1668,6 +1862,7 @@
         renderZoneSummary();
         renderHistory();
         window.addEventListener('resize', drawChart);
+        window.addEventListener('orientationchange', () => setTimeout(drawChart, 150));
         drawChart();
     </script>
 </body>
