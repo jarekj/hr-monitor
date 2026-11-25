@@ -1,0 +1,19 @@
+{
+  "name": "Monitor Tętna BLE",
+  "short_name": "Tętno BLE",
+  "description": "Monitor tętna Bluetooth ze strefami i eksportem treningów",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
