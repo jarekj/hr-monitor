@@ -2,6 +2,9 @@
 
 A lightweight, zero-dependency Progressive Web App (PWA) for real-time heart rate monitoring over Web Bluetooth (BLE), zone tracking, workout history, and activity export.
 
+## Privacy
+Your data stays yours. All processing takes place locally in your browser. No data is collected, transmitted, or stored on any server. Your privacy is protected.
+
 ## Features
 
 - **Web Bluetooth (BLE) Support**: Connects directly to standard Bluetooth Heart Rate sensors (`heart_rate` service / `heart_rate_measurement` characteristic, supporting both 8-bit and 16-bit BPM values).
@@ -19,6 +22,9 @@ A lightweight, zero-dependency Progressive Web App (PWA) for real-time heart rat
 
 - **Web Bluetooth**: Requires a supported browser such as Chrome, Edge, or Opera.
 - **Secure Context**: Web Bluetooth and Service Workers require **HTTPS** or **`localhost`** (do not open `index.html` via `file://`).
+
+## Online demo
+**[hr-monitor.himeer.workers.dev](https://hr-monitor.himeer.workers.dev/)**
 
 ## Running Locally
 
@@ -45,3 +51,14 @@ npx serve .
 
 - `ble_hr_user_settings_v1` — language, `HR max`, profile attributes, zone mode, and zone thresholds
 - `ble_hr_workout_history_v1` — saved workouts and recorded heart rate samples
+
+
+## Screeshots
+
+![pc_settings_web_screenshot_1](./images/pc_settings_web_screenshot_1.jpg)
+![pc_main_web_screenshot_1](./images/pc_main_web_screenshot_1.jpg)
+![fullscreen_mobile_horizontal_1](./images/fullscreen_mobile_horizontal_1.jpg)
+![fullscreen_mobile_vertical_1](./images/fullscreen_mobile_vertical_1.jpg)
+![fullscreen_mobile_vertical_2](./images/fullscreen_mobile_vertical_2.jpg)
+![fullscreen_mobile_vertical_3](./images/fullscreen_mobile_vertical_3.jpg)
+
