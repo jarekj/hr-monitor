@@ -64,6 +64,7 @@
         .controls {
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
             gap: 8px;
         }
 
@@ -252,6 +253,11 @@
         .mode-switch button.active {
             background: #2563eb;
             color: #fff;
+        }
+
+        header .mode-switch button {
+            min-height: 40px;
+            padding: 6px 10px;
         }
 
         .profile-inputs {
@@ -542,6 +548,11 @@
                 font-size: 0.84rem;
             }
 
+            header .mode-switch button {
+                min-height: 36px;
+                padding: 5px 9px;
+            }
+
             .bpm-cell {
                 padding: 8px 6px;
             }
@@ -692,7 +703,7 @@
 </head>
 
 <body>
-    <button id="btnExitFsFloat" class="fs-exit-float" title="Wyjdź z pełnego ekranu">✕ Wyjdź</button>
+    <button id="btnExitFsFloat" class="fs-exit-float" data-i18n="exitFsFloat" data-i18n-title="exitFsTitle" title="Wyjdź z pełnego ekranu">✕ Wyjdź</button>
 
     <div class="container">
         <!-- Nagłówek -->
@@ -702,11 +713,15 @@
                 <div id="bleStatusText" class="status-text">Czujnik: Rozłączony</div>
             </div>
             <div class="controls">
-                <button id="btnConnect">Połącz pasek BLE</button>
+                <button id="btnConnect" data-i18n="btnConnect">Połącz pasek BLE</button>
                 <button id="btnDemo" class="btn-secondary">Tryb Demo</button>
-                <button id="btnTogglePanel" class="btn-outline">⚙️ Ustawienia</button>
+                <button id="btnTogglePanel" class="btn-outline" data-i18n="btnSettings">⚙️ Ustawienia</button>
                 <button id="btnFullscreen" class="btn-outline">⛶ Pełny ekran</button>
-                <button id="btnInstall" class="btn-success hidden">📲 Zainstaluj</button>
+                <button id="btnInstall" class="btn-success hidden" data-i18n="btnInstall">📲 Zainstaluj</button>
+                <div class="mode-switch" role="group" data-i18n-aria="langSwitchAria" aria-label="Wybór języka">
+                    <button id="langPlBtn" class="active">PL</button>
+                    <button id="langEnBtn">EN</button>
+                </div>
             </div>
         </header>
 
@@ -714,36 +729,36 @@
         <section id="userPanel" class="card user-panel hidden">
             <div class="panel-header">
                 <div>
-                    <h2 style="margin:0; font-size:1.1rem;">Panel użytkownika — HR max, profil i strefy</h2>
-                    <div class="status-text">Ustawienia zapisują się automatycznie w pamięci przeglądarki</div>
+                    <h2 style="margin:0; font-size:1.1rem;" data-i18n="panelTitle">Panel użytkownika — HR max, profil i strefy</h2>
+                    <div class="status-text" data-i18n="panelSubtitle">Ustawienia zapisują się automatycznie w pamięci przeglądarki</div>
                 </div>
                 <div class="panel-actions">
-                    <div class="mode-switch" role="group" aria-label="Tryb definiowania stref">
-                        <button id="modePctBtn" class="active">Procenty (% HR max)</button>
-                        <button id="modeBpmBtn">Wartości nominalne (BPM)</button>
+                    <div class="mode-switch" role="group" data-i18n-aria="zoneModeAria" aria-label="Tryb definiowania stref">
+                        <button id="modePctBtn" class="active" data-i18n="modePct">Procenty (% HR max)</button>
+                        <button id="modeBpmBtn" data-i18n="modeBpm">Wartości nominalne (BPM)</button>
                     </div>
-                    <button id="btnResetSettings" class="btn-outline btn-sm">Przywróć domyślne</button>
+                    <button id="btnResetSettings" class="btn-outline btn-sm" data-i18n="resetDefaults">Przywróć domyślne</button>
                 </div>
             </div>
 
             <div class="profile-inputs">
                 <div class="field-group">
-                    <label for="hrMaxInput"><strong>HR max (BPM):</strong></label>
+                    <label for="hrMaxInput"><strong data-i18n="labelHrMax">HR max (BPM):</strong></label>
                     <input type="number" id="hrMaxInput" value="190" min="100" max="240" />
                 </div>
                 <div class="field-group">
-                    <label for="genderInput"><strong>Płeć:</strong></label>
+                    <label for="genderInput"><strong data-i18n="labelGender">Płeć:</strong></label>
                     <select id="genderInput">
-                        <option value="male">Mężczyzna</option>
-                        <option value="female">Kobieta</option>
+                        <option value="male" data-i18n="genderMale">Mężczyzna</option>
+                        <option value="female" data-i18n="genderFemale">Kobieta</option>
                     </select>
                 </div>
                 <div class="field-group">
-                    <label for="weightInput"><strong>Waga (kg):</strong></label>
+                    <label for="weightInput"><strong data-i18n="labelWeight">Waga (kg):</strong></label>
                     <input type="number" id="weightInput" value="75" min="30" max="250" />
                 </div>
                 <div class="field-group">
-                    <label for="ageInput"><strong>Wiek (lata):</strong></label>
+                    <label for="ageInput"><strong data-i18n="labelAge">Wiek (lata):</strong></label>
                     <input type="number" id="ageInput" value="30" min="10" max="100" />
                 </div>
             </div>
@@ -752,7 +767,7 @@
                 <table class="zones-table">
                     <thead>
                         <tr>
-                            <th>Strefa</th>
+                            <th data-i18n="colZone">Strefa</th>
                             <th id="colFromHeader">Od (%)</th>
                             <th id="colToHeader">Do (%)</th>
                             <th id="colPreviewHeader">Zakres (BPM)</th>
@@ -771,9 +786,9 @@
             </div>
             <div class="controls">
                 <button id="btnStart" class="btn-success">▶ Start</button>
-                <button id="btnPause" class="btn-warning" disabled>⏸ Pauza</button>
-                <button id="btnFinish" class="btn-secondary" disabled>⏹ Zakończ</button>
-                <button id="btnReset" class="btn-danger" disabled>↺ Reset</button>
+                <button id="btnPause" class="btn-warning" disabled data-i18n="btnPause">⏸ Pauza</button>
+                <button id="btnFinish" class="btn-secondary" disabled data-i18n="btnFinish">⏹ Zakończ</button>
+                <button id="btnReset" class="btn-danger" disabled data-i18n="btnReset">↺ Reset</button>
                 <button id="btnExportCsv" disabled>⬇ CSV</button>
                 <button id="btnExportTcx" disabled>⬇ TCX</button>
                 <button id="btnExportGpx" disabled>⬇ GPX</button>
@@ -785,22 +800,22 @@
             <div id="bpmCard" class="card bpm-box">
                 <div class="bpm-grid">
                     <div class="bpm-cell">
-                        <div class="bpm-cell-label">Aktualne tętno</div>
+                        <div class="bpm-cell-label" data-i18n="bpmCurrent">Aktualne tętno</div>
                         <div id="bpmValue" class="bpm-value">--</div>
                         <div class="bpm-unit">BPM</div>
                     </div>
                     <div class="bpm-cell">
-                        <div class="bpm-cell-label">Procent HR max</div>
+                        <div class="bpm-cell-label" data-i18n="bpmPercent">Procent HR max</div>
                         <div class="bpm-value"><span id="pctValue">0</span>%</div>
                         <div class="bpm-unit">HR max</div>
                     </div>
                     <div class="bpm-cell">
-                        <div class="bpm-cell-label">Średnie tętno</div>
+                        <div class="bpm-cell-label" data-i18n="bpmAverage">Średnie tętno</div>
                         <div id="statAvg" class="bpm-value">--</div>
                         <div class="bpm-unit">BPM</div>
                     </div>
                     <div class="bpm-cell">
-                        <div class="bpm-cell-label">Maks. tętno</div>
+                        <div class="bpm-cell-label" data-i18n="bpmMax">Maks. tętno</div>
                         <div id="statMax" class="bpm-value">--</div>
                         <div class="bpm-unit">BPM</div>
                     </div>
@@ -811,20 +826,20 @@
             <div class="card stats-card">
                 <div class="stats-list">
                     <div>
-                        <div class="stat-label">Czas treningu</div>
+                        <div class="stat-label" data-i18n="statTime">Czas treningu</div>
                         <div id="statTime" class="stat-val">00:00</div>
                     </div>
                     <div>
-                        <div class="stat-label">Spalone kalorie</div>
+                        <div class="stat-label" data-i18n="statKcal">Spalone kalorie</div>
                         <div id="statKcal" class="stat-val">0 kcal</div>
                     </div>
                     <div>
-                        <div class="stat-label">Próbki</div>
+                        <div class="stat-label" data-i18n="statSamples">Próbki</div>
                         <div id="statCount" class="stat-val">0</div>
                     </div>
                 </div>
                 <div class="zones-summary-section">
-                    <h2 class="zones-summary-title">Czas spędzony w strefach tętna</h2>
+                    <h2 class="zones-summary-title" data-i18n="zonesSummaryTitle">Czas spędzony w strefach tętna</h2>
                     <div id="zoneSummaryList" class="zone-summary-list"></div>
                 </div>
             </div>
@@ -832,15 +847,15 @@
 
         <!-- Wykres -->
         <section class="card chart-card">
-            <h2 style="margin-top:0; font-size:1.1rem;">Wykres tętna w czasie treningu</h2>
+            <h2 style="margin-top:0; font-size:1.1rem;" data-i18n="chartTitle">Wykres tętna w czasie treningu</h2>
             <canvas id="hrChart"></canvas>
         </section>
 
         <!-- Historia treningów -->
         <section class="card history-card">
             <div class="history-header">
-                <h2 style="margin:0; font-size:1.1rem;">Historia zakończonych treningów</h2>
-                <button id="btnClearHistory" class="btn-danger btn-sm hidden">Wyczyść historię</button>
+                <h2 style="margin:0; font-size:1.1rem;" data-i18n="historyTitle">Historia zakończonych treningów</h2>
+                <button id="btnClearHistory" class="btn-danger btn-sm hidden" data-i18n="btnClearHistory">Wyczyść historię</button>
             </div>
             <div id="historyList" class="history-list"></div>
         </section>
@@ -855,15 +870,189 @@
         const DEFAULT_WEIGHT = 75;
         const DEFAULT_AGE = 30;
         const DEFAULT_ZONE_MODE = 'pct';
+        const DEFAULT_LANG = 'pl';
+
+        const I18N = {
+            pl: {
+                exitFsFloat: '✕ Wyjdź',
+                exitFsTitle: 'Wyjdź z pełnego ekranu',
+                enterFullscreen: '⛶ Pełny ekran',
+                exitFullscreen: '✕ Wyjdź z pełnego ekranu',
+                btnConnect: 'Połącz pasek BLE',
+                btnDemoStart: 'Tryb Demo',
+                btnDemoStop: 'Zatrzymaj Demo',
+                btnSettings: '⚙️ Ustawienia',
+                btnInstall: '📲 Zainstaluj',
+                langSwitchAria: 'Wybór języka',
+                panelTitle: 'Panel użytkownika — HR max, profil i strefy',
+                panelSubtitle: 'Ustawienia zapisują się automatycznie w pamięci przeglądarki',
+                zoneModeAria: 'Tryb definiowania stref',
+                modePct: 'Procenty (% HR max)',
+                modeBpm: 'Wartości nominalne (BPM)',
+                resetDefaults: 'Przywróć domyślne',
+                labelHrMax: 'HR max (BPM):',
+                labelGender: 'Płeć:',
+                genderMale: 'Mężczyzna',
+                genderFemale: 'Kobieta',
+                labelWeight: 'Waga (kg):',
+                labelAge: 'Wiek (lata):',
+                colZone: 'Strefa',
+                colFromPct: 'Od (%)',
+                colToPct: 'Do (%)',
+                colPreviewPct: 'Wyliczony zakres (BPM)',
+                colFromBpm: 'Od (BPM)',
+                colToBpm: 'Do (BPM)',
+                colPreviewBpm: 'Odpowiednik (% HR max)',
+                btnStart: '▶ Start',
+                btnResume: '▶ Wznów',
+                btnPause: '⏸ Pauza',
+                btnFinish: '⏹ Zakończ',
+                btnReset: '↺ Reset',
+                bpmCurrent: 'Aktualne tętno',
+                bpmPercent: 'Procent HR max',
+                bpmAverage: 'Średnie tętno',
+                bpmMax: 'Maks. tętno',
+                noData: 'Brak danych',
+                statTime: 'Czas treningu',
+                statKcal: 'Spalone kalorie',
+                statSamples: 'Próbki',
+                zonesSummaryTitle: 'Czas spędzony w strefach tętna',
+                chartTitle: 'Wykres tętna w czasie treningu',
+                chartEmpty: 'Połącz czujnik (lub Demo) i kliknij ▶ Start',
+                historyTitle: 'Historia zakończonych treningów',
+                btnClearHistory: 'Wyczyść historię',
+                historyEmpty: 'Brak zapisanych treningów. Zakończ trening, aby zapisać go w historii.',
+                historyTime: 'Czas',
+                historyAvg: 'Śr. tętno',
+                historyMax: 'Maks.',
+                historyCalories: 'Kalorie',
+                historySamples: 'Próbki',
+                historyPreviewBtn: '👁️ Podgląd',
+                historyDeleteBtn: '🗑️ Usuń',
+                confirmClearHistory: 'Czy na pewno usunąć całą historię zapisanych treningów?',
+                alertStorageFull: 'Nie udało się zapisać treningu w pamięci przeglądarki (brak miejsca).',
+                alertFinishBeforeHistory: 'Zakończ lub zresetuj bieżący trening przed wczytaniem zapisu z historii.',
+                alertNoBluetooth: 'Twoja przeglądarka nie obsługuje Web Bluetooth. Użyj Chrome, Edge lub Opera (HTTPS lub localhost).',
+                bleDisconnected: 'Czujnik: Rozłączony',
+                bleSearching: 'Czujnik: Szukanie urządzenia...',
+                bleConnected: 'Czujnik: Połączono z "{name}"',
+                bleDefaultDevice: 'Pasek HR',
+                bleError: 'Czujnik: Błąd ({error})',
+                bleDemoActive: 'Czujnik: Tryb Demo aktywny (symulacja tętna)',
+                bleDemoStopped: 'Czujnik: Zatrzymano tryb Demo',
+                workoutIdle: 'Trening: Gotowy do startu',
+                workoutRunning: 'Trening: W trakcie (rejestrowanie)',
+                workoutPaused: 'Trening: Wstrzymany (Pauza)',
+                workoutFinished: 'Trening: Zakończony (zapisano w historii)',
+                workoutPreview: 'Trening: Podgląd z historii ({date})',
+                csvHeader: 'Czas_ISO,Czas_treningu,Sekundy,Tetno_BPM,Procent_HRmax,Strefa,Kalorie_kcal\n',
+                filePrefix: 'trening',
+                gpxTrackName: 'Trening tetna',
+                zoneNames: {
+                    0: 'Poniżej stref',
+                    1: 'Strefa 1: rozgrzewka',
+                    2: 'Strefa 2: spokojna',
+                    3: 'Strefa 3: aerobowa',
+                    4: 'Strefa 4: progowa',
+                    5: 'Strefa 5: maksymalna'
+                }
+            },
+            en: {
+                exitFsFloat: '✕ Exit',
+                exitFsTitle: 'Exit fullscreen',
+                enterFullscreen: '⛶ Fullscreen',
+                exitFullscreen: '✕ Exit fullscreen',
+                btnConnect: 'Connect BLE strap',
+                btnDemoStart: 'Demo mode',
+                btnDemoStop: 'Stop Demo',
+                btnSettings: '⚙️ Settings',
+                btnInstall: '📲 Install',
+                langSwitchAria: 'Language selection',
+                panelTitle: 'User panel — HR max, profile & zones',
+                panelSubtitle: 'Settings are saved automatically in browser storage',
+                zoneModeAria: 'Zone definition mode',
+                modePct: 'Percentages (% HR max)',
+                modeBpm: 'Nominal values (BPM)',
+                resetDefaults: 'Reset defaults',
+                labelHrMax: 'HR max (BPM):',
+                labelGender: 'Sex:',
+                genderMale: 'Male',
+                genderFemale: 'Female',
+                labelWeight: 'Weight (kg):',
+                labelAge: 'Age (years):',
+                colZone: 'Zone',
+                colFromPct: 'From (%)',
+                colToPct: 'To (%)',
+                colPreviewPct: 'Calculated range (BPM)',
+                colFromBpm: 'From (BPM)',
+                colToBpm: 'To (BPM)',
+                colPreviewBpm: 'Equivalent (% HR max)',
+                btnStart: '▶ Start',
+                btnResume: '▶ Resume',
+                btnPause: '⏸ Pause',
+                btnFinish: '⏹ Finish',
+                btnReset: '↺ Reset',
+                bpmCurrent: 'Current HR',
+                bpmPercent: '% of HR max',
+                bpmAverage: 'Average HR',
+                bpmMax: 'Max HR',
+                noData: 'No data',
+                statTime: 'Workout time',
+                statKcal: 'Calories burned',
+                statSamples: 'Samples',
+                zonesSummaryTitle: 'Time spent in HR zones',
+                chartTitle: 'Heart rate chart over workout',
+                chartEmpty: 'Connect sensor (or Demo) and click ▶ Start',
+                historyTitle: 'Completed workouts history',
+                btnClearHistory: 'Clear history',
+                historyEmpty: 'No saved workouts. Finish a workout to save it to history.',
+                historyTime: 'Time',
+                historyAvg: 'Avg HR',
+                historyMax: 'Max',
+                historyCalories: 'Calories',
+                historySamples: 'Samples',
+                historyPreviewBtn: '👁️ Preview',
+                historyDeleteBtn: '🗑️ Delete',
+                confirmClearHistory: 'Are you sure you want to delete all saved workout history?',
+                alertStorageFull: 'Failed to save workout in browser storage (out of space).',
+                alertFinishBeforeHistory: 'Finish or reset the current workout before loading a record from history.',
+                alertNoBluetooth: 'Your browser does not support Web Bluetooth. Use Chrome, Edge, or Opera (HTTPS or localhost).',
+                bleDisconnected: 'Sensor: Disconnected',
+                bleSearching: 'Sensor: Searching for device...',
+                bleConnected: 'Sensor: Connected to "{name}"',
+                bleDefaultDevice: 'HR Strap',
+                bleError: 'Sensor: Error ({error})',
+                bleDemoActive: 'Sensor: Demo mode active (HR simulation)',
+                bleDemoStopped: 'Sensor: Demo mode stopped',
+                workoutIdle: 'Workout: Ready to start',
+                workoutRunning: 'Workout: In progress (recording)',
+                workoutPaused: 'Workout: Paused',
+                workoutFinished: 'Workout: Finished (saved to history)',
+                workoutPreview: 'Workout: History preview ({date})',
+                csvHeader: 'Time_ISO,Workout_time,Seconds,Heart_rate_BPM,Percent_HRmax,Zone,Calories_kcal\n',
+                filePrefix: 'workout',
+                gpxTrackName: 'Heart rate workout',
+                zoneNames: {
+                    0: 'Below zones',
+                    1: 'Zone 1: warm-up',
+                    2: 'Zone 2: easy',
+                    3: 'Zone 3: aerobic',
+                    4: 'Zone 4: threshold',
+                    5: 'Zone 5: maximum'
+                }
+            }
+        };
+
         const DEFAULT_ZONES = [
-            { id: 1, name: 'Strefa 1: rozgrzewka', minPct: 50, maxPct: 60, minBpm: 95, maxBpm: 114, color: '#3b82f6' },
-            { id: 2, name: 'Strefa 2: spokojna', minPct: 60, maxPct: 70, minBpm: 114, maxBpm: 133, color: '#22c55e' },
-            { id: 3, name: 'Strefa 3: aerobowa', minPct: 70, maxPct: 80, minBpm: 133, maxBpm: 152, color: '#eab308' },
-            { id: 4, name: 'Strefa 4: progowa', minPct: 80, maxPct: 90, minBpm: 152, maxBpm: 171, color: '#f97316' },
-            { id: 5, name: 'Strefa 5: maksymalna', minPct: 90, maxPct: 100, minBpm: 171, maxBpm: 190, color: '#991b1b' }
+            { id: 1, minPct: 50, maxPct: 60, minBpm: 95, maxBpm: 114, color: '#3b82f6' },
+            { id: 2, minPct: 60, maxPct: 70, minBpm: 114, maxBpm: 133, color: '#22c55e' },
+            { id: 3, minPct: 70, maxPct: 80, minBpm: 133, maxBpm: 152, color: '#eab308' },
+            { id: 4, minPct: 80, maxPct: 90, minBpm: 152, maxBpm: 171, color: '#f97316' },
+            { id: 5, minPct: 90, maxPct: 100, minBpm: 171, maxBpm: 190, color: '#991b1b' }
         ];
 
         // --- Profil i strefy tętna ---
+        let currentLang = DEFAULT_LANG;
         let hrMax = DEFAULT_HR_MAX;
         let userGender = DEFAULT_GENDER;
         let userWeightKg = DEFAULT_WEIGHT;
@@ -878,6 +1067,9 @@
         let timerInterval = null;
         let samples = []; // { time, elapsedMs, elapsedSec, bpm, pct, zoneId, totalKcal }
         let activePreviewId = null;
+        let activePreviewCreatedAt = null;
+        let lastBpm = null;
+        let bleStatusState = { key: 'bleDisconnected' };
 
         let bleDevice = null;
         let demoInterval = null;
@@ -891,6 +1083,8 @@
         const btnFullscreen = document.getElementById('btnFullscreen');
         const btnExitFsFloat = document.getElementById('btnExitFsFloat');
         const btnInstall = document.getElementById('btnInstall');
+        const langPlBtn = document.getElementById('langPlBtn');
+        const langEnBtn = document.getElementById('langEnBtn');
         const modePctBtn = document.getElementById('modePctBtn');
         const modeBpmBtn = document.getElementById('modeBpmBtn');
         const btnResetSettings = document.getElementById('btnResetSettings');
@@ -937,6 +1131,84 @@
             btnExportTcx.disabled = disabled;
             btnExportGpx.disabled = disabled;
         }
+
+        // --- Wielojęzyczność (PL / EN) ---
+        function t(key, vars = {}) {
+            const dict = I18N[currentLang] || I18N.pl;
+            let text = dict[key] ?? I18N.pl[key] ?? key;
+            Object.keys(vars).forEach(k => {
+                text = text.replace(`{${k}}`, vars[k]);
+            });
+            return text;
+        }
+
+        function getLocale() {
+            return currentLang === 'en' ? 'en-US' : 'pl-PL';
+        }
+
+        function getZoneName(zoneId) {
+            const dict = I18N[currentLang] || I18N.pl;
+            return dict.zoneNames[zoneId] || I18N.pl.zoneNames[zoneId] || '';
+        }
+
+        function renderBleStatus() {
+            const { key, name, error } = bleStatusState;
+            if (key === 'bleConnected') {
+                bleStatusText.textContent = t('bleConnected', { name: name || t('bleDefaultDevice') });
+            } else if (key === 'bleError') {
+                bleStatusText.textContent = t('bleError', { error: error || '' });
+            } else {
+                bleStatusText.textContent = t(key);
+            }
+        }
+
+        function setBleStatus(key, extra = {}) {
+            bleStatusState = { key, ...extra };
+            renderBleStatus();
+        }
+
+        function applyLanguageUI() {
+            document.documentElement.lang = currentLang;
+            langPlBtn.classList.toggle('active', currentLang === 'pl');
+            langEnBtn.classList.toggle('active', currentLang === 'en');
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = t(el.dataset.i18n);
+            });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                el.title = t(el.dataset.i18nTitle);
+            });
+            document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+                el.setAttribute('aria-label', t(el.dataset.i18nAria));
+            });
+
+            btnFullscreen.textContent = isFullscreenView ? t('exitFullscreen') : t('enterFullscreen');
+            btnDemo.textContent = demoInterval ? t('btnDemoStop') : t('btnDemoStart');
+
+            if (lastBpm !== null) {
+                zoneBadgeEl.textContent = getZoneName(getZoneForBpm(lastBpm).id);
+            } else {
+                zoneBadgeEl.textContent = t('noData');
+            }
+
+            renderBleStatus();
+            renderZonesTable();
+            updateWorkoutUI();
+            renderZoneSummary();
+            renderHistory();
+            drawChart();
+        }
+
+        function setLanguage(lang) {
+            const next = lang === 'en' ? 'en' : 'pl';
+            if (currentLang === next) return;
+            currentLang = next;
+            saveSettings();
+            applyLanguageUI();
+        }
+
+        langPlBtn.addEventListener('click', () => setLanguage('pl'));
+        langEnBtn.addEventListener('click', () => setLanguage('en'));
 
         // --- Obliczanie kalorii (wzór Keytela, kcal/min) ---
         function getKcalPerMinute(bpm) {
@@ -1014,7 +1286,7 @@
         function setFullscreenView(active) {
             isFullscreenView = active;
             document.body.classList.toggle('is-fullscreen', active);
-            btnFullscreen.textContent = active ? '✕ Wyjdź z pełnego ekranu' : '⛶ Pełny ekran';
+            btnFullscreen.textContent = active ? t('exitFullscreen') : t('enterFullscreen');
             setTimeout(drawChart, 80);
         }
 
@@ -1068,6 +1340,7 @@
         function saveSettings() {
             try {
                 const payload = {
+                    lang: currentLang,
                     hrMax,
                     userGender,
                     userWeightKg,
@@ -1110,6 +1383,9 @@
                     return;
                 }
                 const saved = JSON.parse(raw);
+                if (saved.lang === 'pl' || saved.lang === 'en') {
+                    currentLang = saved.lang;
+                }
                 if (typeof saved.hrMax === 'number' && saved.hrMax >= 100 && saved.hrMax <= 240) {
                     hrMax = saved.hrMax;
                 }
@@ -1206,9 +1482,9 @@
         function getZoneForBpm(bpm) {
             for (let i = zones.length - 1; i >= 0; i--) {
                 const { minBpm } = getZoneBoundsBpm(zones[i]);
-                if (bpm >= minBpm) return zones[i];
+                if (bpm >= minBpm) return { ...zones[i], name: getZoneName(zones[i].id) };
             }
-            return { id: 0, name: 'Poniżej stref', color: '#94a3b8' };
+            return { id: 0, name: getZoneName(0), color: '#94a3b8' };
         }
 
         // --- Podsumowanie czasu w strefach (od maksymalnej na górze do poniżej na dole) ---
@@ -1225,8 +1501,8 @@
             }
 
             const displayZones = [
-                ...[...zones].reverse(),
-                { id: 0, name: 'Poniżej stref', color: '#94a3b8' }
+                ...[...zones].reverse().map(z => ({ ...z, name: getZoneName(z.id) })),
+                { id: 0, name: getZoneName(0), color: '#94a3b8' }
             ];
 
             zoneSummaryList.innerHTML = '';
@@ -1263,7 +1539,7 @@
                 localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(items));
             } catch (err) {
                 console.error('Błąd zapisu historii:', err);
-                alert('Nie udało się zapisać treningu w pamięci przeglądarki (brak miejsca).');
+                alert(t('alertStorageFull'));
             }
         }
 
@@ -1299,12 +1575,13 @@
             history.unshift(entry);
             setStoredHistory(history);
             activePreviewId = entry.id;
+            activePreviewCreatedAt = null;
             renderHistory();
         }
 
         function loadWorkoutFromHistory(id) {
             if (workoutState === 'RUNNING' || workoutState === 'PAUSED') {
-                alert('Zakończ lub zresetuj bieżący trening przed wczytaniem zapisu z historii.');
+                alert(t('alertFinishBeforeHistory'));
                 return;
             }
             const history = getStoredHistory();
@@ -1316,6 +1593,7 @@
             accumulatedMs = entry.durationMs;
             lastResumeTime = null;
             activePreviewId = entry.id;
+            activePreviewCreatedAt = entry.createdAt;
 
             samples = entry.samples.map(s => ({
                 ...s,
@@ -1333,7 +1611,6 @@
             statCountEl.textContent = entry.sampleCount;
 
             updateWorkoutUI();
-            workoutStateText.textContent = `Trening: Podgląd z historii (${new Date(entry.createdAt).toLocaleString('pl-PL')})`;
             drawChart();
             renderZoneSummary();
             renderHistory();
@@ -1343,14 +1620,18 @@
         function deleteWorkoutFromHistory(id) {
             const history = getStoredHistory().filter(item => item.id !== id);
             setStoredHistory(history);
-            if (activePreviewId === id) activePreviewId = null;
+            if (activePreviewId === id) {
+                activePreviewId = null;
+                activePreviewCreatedAt = null;
+            }
             renderHistory();
         }
 
         btnClearHistory.addEventListener('click', () => {
-            if (confirm('Czy na pewno usunąć całą historię zapisanych treningów?')) {
+            if (confirm(t('confirmClearHistory'))) {
                 localStorage.removeItem(HISTORY_STORAGE_KEY);
                 activePreviewId = null;
+                activePreviewCreatedAt = null;
                 renderHistory();
             }
         });
@@ -1361,7 +1642,7 @@
 
             if (!history.length) {
                 btnClearHistory.classList.add('hidden');
-                historyList.innerHTML = '<div class="status-text">Brak zapisanych treningów. Zakończ trening, aby zapisać go w historii.</div>';
+                historyList.innerHTML = `<div class="status-text">${t('historyEmpty')}</div>`;
                 return;
             }
 
@@ -1369,23 +1650,23 @@
             history.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `history-item ${activePreviewId === item.id ? 'active-preview' : ''}`;
-                const dateLabel = new Date(item.createdAt).toLocaleString('pl-PL');
+                const dateLabel = new Date(item.createdAt).toLocaleString(getLocale());
                 const durLabel = formatDuration(Math.floor(item.durationMs / 1000));
-                const kcalText = typeof item.calories === 'number' ? ` &bull; Kalorie: <strong>${item.calories} kcal</strong>` : '';
+                const kcalText = typeof item.calories === 'number' ? ` &bull; ${t('historyCalories')}: <strong>${item.calories} kcal</strong>` : '';
 
                 div.innerHTML = `
           <div class="history-meta">
             <div class="history-date">${dateLabel}</div>
             <div class="history-stats">
-              Czas: <strong>${durLabel}</strong> &bull;
-              Śr. tętno: <strong>${item.avgBpm} BPM</strong> &bull;
-              Maks.: <strong>${item.maxBpm} BPM</strong>${kcalText} &bull;
-              Próbki: ${item.sampleCount}
+              ${t('historyTime')}: <strong>${durLabel}</strong> &bull;
+              ${t('historyAvg')}: <strong>${item.avgBpm} BPM</strong> &bull;
+              ${t('historyMax')}: <strong>${item.maxBpm} BPM</strong>${kcalText} &bull;
+              ${t('historySamples')}: ${item.sampleCount}
             </div>
           </div>
           <div class="history-actions">
-            <button class="btn-outline btn-sm" data-action="load" data-id="${item.id}">👁️ Podgląd</button>
-            <button class="btn-danger btn-sm" data-action="delete" data-id="${item.id}">🗑️ Usuń</button>
+            <button class="btn-outline btn-sm" data-action="load" data-id="${item.id}">${t('historyPreviewBtn')}</button>
+            <button class="btn-danger btn-sm" data-action="delete" data-id="${item.id}">${t('historyDeleteBtn')}</button>
           </div>
         `;
                 historyList.appendChild(div);
@@ -1466,25 +1747,26 @@
 
         function renderZonesTable() {
             if (zoneMode === 'pct') {
-                colFromHeader.textContent = 'Od (%)';
-                colToHeader.textContent = 'Do (%)';
-                colPreviewHeader.textContent = 'Wyliczony zakres (BPM)';
+                colFromHeader.textContent = t('colFromPct');
+                colToHeader.textContent = t('colToPct');
+                colPreviewHeader.textContent = t('colPreviewPct');
             } else {
-                colFromHeader.textContent = 'Od (BPM)';
-                colToHeader.textContent = 'Do (BPM)';
-                colPreviewHeader.textContent = 'Odpowiednik (% HR max)';
+                colFromHeader.textContent = t('colFromBpm');
+                colToHeader.textContent = t('colToBpm');
+                colPreviewHeader.textContent = t('colPreviewBpm');
             }
 
             zonesBody.innerHTML = '';
             for (let idx = zones.length - 1; idx >= 0; idx--) {
                 const z = zones[idx];
+                const zName = getZoneName(z.id);
                 const isLast = idx === zones.length - 1;
                 const tr = document.createElement('tr');
 
                 if (zoneMode === 'pct') {
                     const { minBpm, maxBpm } = getZoneBoundsBpm(z);
                     tr.innerHTML = `
-            <td><span class="color-dot" style="background:${z.color}"></span>${z.id}. ${z.name}</td>
+            <td><span class="color-dot" style="background:${z.color}"></span>${z.id}. ${zName}</td>
             <td><input type="number" min="30" max="100" value="${z.minPct}" data-idx="${idx}" data-field="minPct"></td>
             <td><input type="number" min="40" max="110" value="${z.maxPct}" data-idx="${idx}" data-field="maxPct"></td>
             <td><strong>${minBpm} – ${isLast ? maxBpm + '+' : maxBpm} BPM</strong></td>
@@ -1493,7 +1775,7 @@
                     const pMin = Math.round((z.minBpm / hrMax) * 100);
                     const pMax = Math.round((z.maxBpm / hrMax) * 100);
                     tr.innerHTML = `
-            <td><span class="color-dot" style="background:${z.color}"></span>${z.id}. ${z.name}</td>
+            <td><span class="color-dot" style="background:${z.color}"></span>${z.id}. ${zName}</td>
             <td><input type="number" min="40" max="230" value="${z.minBpm}" data-idx="${idx}" data-field="minBpm"></td>
             <td><input type="number" min="50" max="240" value="${z.maxBpm}" data-idx="${idx}" data-field="maxBpm"></td>
             <td><strong>${pMin}% – ${isLast ? pMax + '%+' : pMax + '%'}</strong></td>
@@ -1521,32 +1803,34 @@
         function updateWorkoutUI() {
             workoutDot.className = 'status-dot';
             if (workoutState === 'IDLE') {
-                workoutStateText.textContent = 'Trening: Gotowy do startu';
-                btnStart.textContent = '▶ Start';
+                workoutStateText.textContent = t('workoutIdle');
+                btnStart.textContent = t('btnStart');
                 btnStart.disabled = false;
                 btnPause.disabled = true;
                 btnFinish.disabled = true;
                 btnReset.disabled = samples.length === 0;
             } else if (workoutState === 'RUNNING') {
                 workoutDot.classList.add('running');
-                workoutStateText.textContent = 'Trening: W trakcie (rejestrowanie)';
-                btnStart.textContent = '▶ Start';
+                workoutStateText.textContent = t('workoutRunning');
+                btnStart.textContent = t('btnStart');
                 btnStart.disabled = true;
                 btnPause.disabled = false;
                 btnFinish.disabled = false;
                 btnReset.disabled = false;
             } else if (workoutState === 'PAUSED') {
                 workoutDot.classList.add('paused');
-                workoutStateText.textContent = 'Trening: Wstrzymany (Pauza)';
-                btnStart.textContent = '▶ Wznów';
+                workoutStateText.textContent = t('workoutPaused');
+                btnStart.textContent = t('btnResume');
                 btnStart.disabled = false;
                 btnPause.disabled = true;
                 btnFinish.disabled = false;
                 btnReset.disabled = false;
             } else if (workoutState === 'FINISHED') {
                 workoutDot.classList.add('finished');
-                workoutStateText.textContent = 'Trening: Zakończony (zapisano w historii)';
-                btnStart.textContent = '▶ Start';
+                workoutStateText.textContent = activePreviewCreatedAt
+                    ? t('workoutPreview', { date: new Date(activePreviewCreatedAt).toLocaleString(getLocale()) })
+                    : t('workoutFinished');
+                btnStart.textContent = t('btnStart');
                 btnStart.disabled = true;
                 btnPause.disabled = true;
                 btnFinish.disabled = true;
@@ -1558,6 +1842,7 @@
         btnStart.addEventListener('click', () => {
             if (workoutState === 'IDLE' || workoutState === 'PAUSED') {
                 activePreviewId = null;
+                activePreviewCreatedAt = null;
                 workoutState = 'RUNNING';
                 lastResumeTime = Date.now();
                 requestWakeLock();
@@ -1603,6 +1888,7 @@
             lastResumeTime = null;
             samples = [];
             activePreviewId = null;
+            activePreviewCreatedAt = null;
             if (!isFullscreenView) releaseWakeLock();
             statTimeEl.textContent = '00:00';
             statKcalEl.textContent = '0 kcal';
@@ -1642,6 +1928,7 @@
         function handleHeartRate(bpm) {
             const pct = Math.round((bpm / hrMax) * 100);
             const zone = getZoneForBpm(bpm);
+            lastBpm = bpm;
 
             bpmValueEl.textContent = bpm;
             pctValueEl.textContent = pct;
@@ -1672,18 +1959,18 @@
         // --- Web Bluetooth API ---
         btnConnect.addEventListener('click', async () => {
             if (!navigator.bluetooth) {
-                alert('Twoja przeglądarka nie obsługuje Web Bluetooth. Użyj Chrome, Edge lub Opera (HTTPS lub localhost).');
+                alert(t('alertNoBluetooth'));
                 return;
             }
             try {
                 stopDemo();
-                bleStatusText.textContent = 'Czujnik: Szukanie urządzenia...';
+                setBleStatus('bleSearching');
                 bleDevice = await navigator.bluetooth.requestDevice({
                     filters: [{ services: ['heart_rate'] }]
                 });
 
                 bleDevice.addEventListener('gattserverdisconnected', () => {
-                    bleStatusText.textContent = 'Czujnik: Rozłączono';
+                    setBleStatus('bleDisconnected');
                 });
 
                 const server = await bleDevice.gatt.connect();
@@ -1699,10 +1986,10 @@
                     handleHeartRate(bpm);
                 });
 
-                bleStatusText.textContent = `Czujnik: Połączono z "${bleDevice.name || 'Pasek HR'}"`;
+                setBleStatus('bleConnected', { name: bleDevice.name || '' });
             } catch (err) {
                 console.error(err);
-                bleStatusText.textContent = `Czujnik: Błąd (${err.message})`;
+                setBleStatus('bleError', { error: err.message });
             }
         });
 
@@ -1711,18 +1998,18 @@
             if (demoInterval) {
                 clearInterval(demoInterval);
                 demoInterval = null;
-                btnDemo.textContent = 'Tryb Demo';
+                btnDemo.textContent = t('btnDemoStart');
             }
         }
 
         btnDemo.addEventListener('click', () => {
             if (demoInterval) {
                 stopDemo();
-                bleStatusText.textContent = 'Czujnik: Zatrzymano tryb Demo';
+                setBleStatus('bleDemoStopped');
                 return;
             }
-            bleStatusText.textContent = 'Czujnik: Tryb Demo aktywny (symulacja tętna)';
-            btnDemo.textContent = 'Zatrzymaj Demo';
+            setBleStatus('bleDemoActive');
+            btnDemo.textContent = t('btnDemoStop');
             let simBpm = Math.round(hrMax * 0.56);
             demoInterval = setInterval(() => {
                 simBpm += Math.floor(Math.random() * 9) - 3;
@@ -1749,11 +2036,11 @@
         btnExportCsv.addEventListener('click', () => {
             if (!samples.length) return;
             recalculateCaloriesFromSamples();
-            const header = 'Czas_ISO,Czas_treningu,Sekundy,Tetno_BPM,Procent_HRmax,Strefa,Kalorie_kcal\n';
+            const header = t('csvHeader');
             const rows = samples.map(s =>
                 `${s.time.toISOString()},${formatDuration(s.elapsedSec)},${s.elapsedSec},${s.bpm},${s.pct}%,${getZoneForBpm(s.bpm).id},${s.totalKcal ?? 0}`
             ).join('\n');
-            downloadFile('\uFEFF' + header + rows, `trening_${getFileTimestamp()}.csv`, 'text/csv;charset=utf-8;');
+            downloadFile('\uFEFF' + header + rows, `${t('filePrefix')}_${getFileTimestamp()}.csv`, 'text/csv;charset=utf-8;');
         });
 
         btnExportTcx.addEventListener('click', () => {
@@ -1791,7 +2078,7 @@
   </Activities>
 </TrainingCenterDatabase>`;
 
-            downloadFile(tcx, `trening_${getFileTimestamp()}.tcx`, 'application/vnd.garmin.tcx+xml;charset=utf-8;');
+            downloadFile(tcx, `${t('filePrefix')}_${getFileTimestamp()}.tcx`, 'application/vnd.garmin.tcx+xml;charset=utf-8;');
         });
 
         btnExportGpx.addEventListener('click', () => {
@@ -1816,13 +2103,13 @@
     <time>${startIso}</time>
   </metadata>
   <trk>
-    <name>Trening tetna ${startIso}</name>
+    <name>${t('gpxTrackName')} ${startIso}</name>
     <trkseg>${trkpts}
     </trkseg>
   </trk>
 </gpx>`;
 
-            downloadFile(gpx, `trening_${getFileTimestamp()}.gpx`, 'application/gpx+xml;charset=utf-8;');
+            downloadFile(gpx, `${t('filePrefix')}_${getFileTimestamp()}.gpx`, 'application/gpx+xml;charset=utf-8;');
         });
 
         // --- Rysowanie wykresu z osią czasu (oś X) ---
@@ -1900,7 +2187,7 @@
                 ctx.fillStyle = '#64748b';
                 ctx.font = '13px sans-serif';
                 ctx.textAlign = 'left';
-                ctx.fillText('Połącz czujnik (lub Demo) i kliknij ▶ Start', padL + 12, h / 2);
+                ctx.fillText(t('chartEmpty'), padL + 12, h / 2);
                 return;
             }
 
@@ -1945,13 +2232,9 @@
 
         // Inicjalizacja
         loadSettings();
-        renderZonesTable();
-        updateWorkoutUI();
-        renderZoneSummary();
-        renderHistory();
+        applyLanguageUI();
         window.addEventListener('resize', drawChart);
         window.addEventListener('orientationchange', () => setTimeout(drawChart, 150));
-        drawChart();
     </script>
 </body>
 
