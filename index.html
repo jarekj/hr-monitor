@@ -168,7 +168,7 @@
         }
 
         body.is-fullscreen .bpm-value {
-            font-size: 4.5rem;
+            font-size: 2.75rem;
         }
 
         /* Pasek sterowania treningiem */
@@ -285,33 +285,55 @@
         .bpm-box {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             text-align: center;
+            gap: 10px;
             border-left: 6px solid var(--muted);
             transition: border-color 0.2s;
         }
 
-        .bpm-meta {
+        .bpm-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-auto-rows: 1fr;
+            gap: 8px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .bpm-cell {
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 8px;
+            min-width: 0;
+        }
+
+        .bpm-cell-label {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 4px;
         }
 
         .bpm-value {
-            font-size: 4rem;
+            font-size: 2.35rem;
             font-weight: 800;
-            line-height: 1;
+            line-height: 1.05;
+            font-variant-numeric: tabular-nums;
         }
 
         .bpm-unit {
-            font-size: 1rem;
+            font-size: 0.78rem;
             color: var(--muted);
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .zone-badge {
-            margin-top: 10px;
             padding: 4px 12px;
             border-radius: 999px;
             font-size: 0.85rem;
@@ -498,8 +520,12 @@
                 font-size: 0.84rem;
             }
 
+            .bpm-cell {
+                padding: 8px 6px;
+            }
+
             .bpm-value {
-                font-size: 3.3rem;
+                font-size: 1.95rem;
             }
 
             .stat-val {
@@ -554,29 +580,36 @@
             }
 
             .bpm-box {
-                flex-direction: row;
-                justify-content: space-between;
-                text-align: left;
-                padding: 10px 14px;
+                gap: 6px;
+                padding: 8px 10px;
             }
 
-            .bpm-meta {
-                align-items: flex-end;
+            .bpm-grid {
+                gap: 6px;
+            }
+
+            .bpm-cell {
+                padding: 5px 4px;
+            }
+
+            .bpm-cell-label {
+                font-size: 0.66rem;
+                margin-bottom: 2px;
             }
 
             .bpm-value,
             body.is-fullscreen .bpm-value {
-                font-size: 2.8rem;
+                font-size: 1.55rem;
             }
 
             .bpm-unit {
-                font-size: 0.85rem;
-                margin-top: 0;
+                font-size: 0.68rem;
+                margin-top: 2px;
             }
 
             .zone-badge {
-                margin-top: 6px;
-                font-size: 0.78rem;
+                margin-top: 0;
+                font-size: 0.74rem;
                 padding: 3px 9px;
             }
 
@@ -725,11 +758,29 @@
         <!-- Bieżące tętno i statystyki -->
         <section class="grid-top">
             <div id="bpmCard" class="card bpm-box">
-                <div id="bpmValue" class="bpm-value">--</div>
-                <div class="bpm-meta">
-                    <div class="bpm-unit">BPM (<span id="pctValue">0</span>% HR max)</div>
-                    <div id="zoneBadge" class="zone-badge">Brak danych</div>
+                <div class="bpm-grid">
+                    <div class="bpm-cell">
+                        <div class="bpm-cell-label">Aktualne tętno</div>
+                        <div id="bpmValue" class="bpm-value">--</div>
+                        <div class="bpm-unit">BPM</div>
+                    </div>
+                    <div class="bpm-cell">
+                        <div class="bpm-cell-label">Procent HR max</div>
+                        <div class="bpm-value"><span id="pctValue">0</span>%</div>
+                        <div class="bpm-unit">HR max</div>
+                    </div>
+                    <div class="bpm-cell">
+                        <div class="bpm-cell-label">Średnie tętno</div>
+                        <div id="statAvg" class="bpm-value">--</div>
+                        <div class="bpm-unit">BPM</div>
+                    </div>
+                    <div class="bpm-cell">
+                        <div class="bpm-cell-label">Maks. tętno</div>
+                        <div id="statMax" class="bpm-value">--</div>
+                        <div class="bpm-unit">BPM</div>
+                    </div>
                 </div>
+                <div id="zoneBadge" class="zone-badge">Brak danych</div>
             </div>
 
             <div class="card stats-card">
@@ -741,14 +792,6 @@
                     <div>
                         <div class="stat-label">Spalone kalorie</div>
                         <div id="statKcal" class="stat-val">0 kcal</div>
-                    </div>
-                    <div>
-                        <div class="stat-label">Średnie tętno</div>
-                        <div id="statAvg" class="stat-val">--</div>
-                    </div>
-                    <div>
-                        <div class="stat-label">Maks. tętno</div>
-                        <div id="statMax" class="stat-val">--</div>
                     </div>
                     <div>
                         <div class="stat-label">Próbki</div>
@@ -1262,8 +1305,8 @@
 
             statTimeEl.textContent = formatDuration(Math.floor(accumulatedMs / 1000));
             statKcalEl.textContent = `${kcal} kcal`;
-            statAvgEl.textContent = `${entry.avgBpm} BPM`;
-            statMaxEl.textContent = `${entry.maxBpm} BPM`;
+            statAvgEl.textContent = entry.avgBpm;
+            statMaxEl.textContent = entry.maxBpm;
             statCountEl.textContent = entry.sampleCount;
 
             updateWorkoutUI();
@@ -1572,8 +1615,8 @@
             const max = Math.max(...bpms);
 
             statKcalEl.textContent = `${totalKcal} kcal`;
-            statAvgEl.textContent = `${avg} BPM`;
-            statMaxEl.textContent = `${max} BPM`;
+            statAvgEl.textContent = avg;
+            statMaxEl.textContent = max;
             statCountEl.textContent = samples.length;
             setExportButtonsDisabled(false);
 
