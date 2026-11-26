@@ -289,8 +289,9 @@
             align-items: center;
             text-align: center;
             gap: 10px;
-            border-left: 6px solid var(--muted);
-            transition: border-color 0.2s;
+            --bpm-fg: var(--text);
+            --bpm-badge-bg: #334155;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
         }
 
         .bpm-grid {
@@ -309,6 +310,7 @@
             align-items: center;
             background: #0f172a;
             border: 1px solid var(--border);
+            color: var(--text);
             border-radius: 8px;
             padding: 10px 8px;
             min-width: 0;
@@ -338,7 +340,9 @@
             border-radius: 999px;
             font-size: 0.85rem;
             font-weight: 700;
-            background: #334155;
+            background: var(--bpm-badge-bg);
+            color: var(--bpm-fg);
+            transition: background-color 0.25s ease, color 0.25s ease;
         }
 
         .stats-card {
@@ -1612,6 +1616,29 @@
         });
 
         // --- Odbiór tętna ---
+        function isLightColor(hex) {
+            const clean = hex.replace('#', '');
+            if (clean.length !== 6) return false;
+            const r = parseInt(clean.slice(0, 2), 16) / 255;
+            const g = parseInt(clean.slice(2, 4), 16) / 255;
+            const b = parseInt(clean.slice(4, 6), 16) / 255;
+            const toLinear = c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+            const luminance = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+            return luminance > 0.28;
+        }
+
+        function applyBpmCardZoneTheme(color) {
+            bpmCardEl.style.backgroundColor = color;
+            bpmCardEl.style.borderColor = color;
+            if (isLightColor(color)) {
+                bpmCardEl.style.setProperty('--bpm-fg', '#0f172a');
+                bpmCardEl.style.setProperty('--bpm-badge-bg', 'rgba(15, 23, 42, 0.16)');
+            } else {
+                bpmCardEl.style.setProperty('--bpm-fg', '#f8fafc');
+                bpmCardEl.style.setProperty('--bpm-badge-bg', 'rgba(15, 23, 42, 0.35)');
+            }
+        }
+
         function handleHeartRate(bpm) {
             const pct = Math.round((bpm / hrMax) * 100);
             const zone = getZoneForBpm(bpm);
@@ -1619,8 +1646,7 @@
             bpmValueEl.textContent = bpm;
             pctValueEl.textContent = pct;
             zoneBadgeEl.textContent = zone.name;
-            zoneBadgeEl.style.background = zone.color;
-            bpmCardEl.style.borderLeftColor = zone.color;
+            applyBpmCardZoneTheme(zone.color);
 
             if (workoutState !== 'RUNNING') return;
 
