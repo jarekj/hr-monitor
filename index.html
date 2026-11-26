@@ -341,12 +341,18 @@
             background: #334155;
         }
 
+        .stats-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
         .stats-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
             gap: 12px;
-            align-content: center;
-            height: 100%;
+            align-content: start;
         }
 
         .stat-label {
@@ -368,22 +374,34 @@
         }
 
         /* Podsumowanie czasu w strefach */
+        .zones-summary-section {
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+
+        .zones-summary-title {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
         .zone-summary-list {
             display: grid;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 7px;
+            margin-top: 8px;
         }
 
         .zone-summary-row {
             display: grid;
-            grid-template-columns: 165px 1fr 105px;
+            grid-template-columns: 152px 1fr 92px;
             align-items: center;
-            gap: 12px;
-            font-size: 0.88rem;
+            gap: 10px;
+            font-size: 0.82rem;
         }
 
         .zone-bar-bg {
-            height: 12px;
+            height: 10px;
             background: #0f172a;
             border-radius: 999px;
             overflow: hidden;
@@ -564,7 +582,6 @@
             header,
             #userPanel,
             .workout-bar,
-            .zones-summary-card,
             .history-card {
                 grid-column: 1 / -1;
             }
@@ -641,26 +658,30 @@
                 height: clamp(160px, calc(100vh - 175px), 250px);
             }
 
-            .zones-summary-card h2 {
-                font-size: 0.92rem !important;
+            .zones-summary-section {
+                padding-top: 6px;
+            }
+
+            .zones-summary-title {
+                font-size: 0.75rem;
             }
 
             .zone-summary-list {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 6px 12px;
-                margin-top: 6px;
+                grid-template-columns: 1fr;
+                gap: 4px;
+                margin-top: 5px;
             }
 
             .zone-summary-row {
                 grid-template-columns: 1fr auto;
-                gap: 3px 6px;
-                font-size: 0.76rem;
+                gap: 2px 6px;
+                font-size: 0.72rem;
             }
 
             .zone-summary-row .zone-bar-bg {
                 grid-column: 1 / -1;
                 order: 3;
-                height: 8px;
+                height: 6px;
             }
         }
     </style>
@@ -798,6 +819,10 @@
                         <div id="statCount" class="stat-val">0</div>
                     </div>
                 </div>
+                <div class="zones-summary-section">
+                    <h2 class="zones-summary-title">Czas spędzony w strefach tętna</h2>
+                    <div id="zoneSummaryList" class="zone-summary-list"></div>
+                </div>
             </div>
         </section>
 
@@ -805,12 +830,6 @@
         <section class="card chart-card">
             <h2 style="margin-top:0; font-size:1.1rem;">Wykres tętna w czasie treningu</h2>
             <canvas id="hrChart"></canvas>
-        </section>
-
-        <!-- Podsumowanie czasu w strefach -->
-        <section class="card zones-summary-card">
-            <h2 style="margin:0; font-size:1.1rem;">Czas spędzony w strefach tętna</h2>
-            <div id="zoneSummaryList" class="zone-summary-list"></div>
         </section>
 
         <!-- Historia treningów -->
