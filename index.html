@@ -169,7 +169,7 @@
         }
 
         body.is-fullscreen .bpm-value {
-            font-size: 2.75rem;
+            font-size: clamp(1.65rem, 5vw, 2.75rem);
         }
 
         /* Pasek sterowania treningiem */
@@ -586,7 +586,7 @@
             }
 
             .bpm-value {
-                font-size: 1.95rem;
+                font-size: 1.7rem;
             }
 
             .stat-val {
@@ -659,7 +659,7 @@
 
             .bpm-value,
             body.is-fullscreen .bpm-value {
-                font-size: 1.55rem;
+                font-size: 1.35rem;
             }
 
             .bpm-unit {
@@ -1656,10 +1656,20 @@
             }
         }
 
+        function calculateAvgBpm(targetSamples) {
+            if (!Array.isArray(targetSamples) || !targetSamples.length) return 0;
+            const sum = targetSamples.reduce((acc, s) => acc + s.bpm, 0);
+            return Number((sum / targetSamples.length).toFixed(2));
+        }
+
+        function formatAvgBpm(avg) {
+            return typeof avg === 'number' && Number.isFinite(avg) ? avg.toFixed(2) : '--';
+        }
+
         function saveCurrentWorkoutToHistory() {
             if (!samples.length) return;
             const bpms = samples.map(s => s.bpm);
-            const avgBpm = Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
+            const avgBpm = calculateAvgBpm(samples);
             const maxBpm = Math.max(...bpms);
             const durationMs = accumulatedMs;
             const calories = recalculateCaloriesFromSamples();
@@ -1720,9 +1730,11 @@
                 ? entry.calories
                 : recalculateCaloriesFromSamples();
 
+            const avgBpm = samples.length ? calculateAvgBpm(samples) : entry.avgBpm;
+
             statTimeEl.textContent = formatDuration(Math.floor(accumulatedMs / 1000));
             statKcalEl.textContent = `${kcal} kcal`;
-            statAvgEl.textContent = entry.avgBpm;
+            statAvgEl.textContent = formatAvgBpm(avgBpm);
             statMaxEl.textContent = entry.maxBpm;
             statCountEl.textContent = entry.sampleCount;
 
@@ -1772,6 +1784,7 @@
 
                 const hasSamples = Array.isArray(item.samples) && item.samples.length > 0;
                 const disabledAttr = hasSamples ? '' : 'disabled';
+                const displayAvg = formatAvgBpm(hasSamples ? calculateAvgBpm(item.samples) : item.avgBpm);
                 const typeBadge = `<span class="history-type-badge">${getWorkoutTypeLabel(item.workoutType || 'other')}</span>`;
 
                 div.innerHTML = `
@@ -1779,7 +1792,7 @@
             <div class="history-date"><span>${dateLabel}</span>${typeBadge}</div>
             <div class="history-stats">
               ${t('historyTime')}: <strong>${durLabel}</strong> &bull;
-              ${t('historyAvg')}: <strong>${item.avgBpm} BPM</strong> &bull;
+              ${t('historyAvg')}: <strong>${displayAvg} BPM</strong> &bull;
               ${t('historyMax')}: <strong>${item.maxBpm} BPM</strong>${kcalText} &bull;
               ${t('historySamples')}: ${item.sampleCount}
             </div>
@@ -2115,11 +2128,11 @@
 
             const totalKcal = recalculateCaloriesFromSamples();
             const bpms = samples.map(s => s.bpm);
-            const avg = Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
+            const avg = calculateAvgBpm(samples);
             const max = Math.max(...bpms);
 
             statKcalEl.textContent = `${totalKcal} kcal`;
-            statAvgEl.textContent = avg;
+            statAvgEl.textContent = formatAvgBpm(avg);
             statMaxEl.textContent = max;
             statCountEl.textContent = samples.length;
 
@@ -2247,7 +2260,7 @@
             const totalSec = Math.max(1, exportSamples[exportSamples.length - 1].elapsedSec);
             const bpms = exportSamples.map(s => s.bpm);
             const avgBpm = typeof entry.avgBpm === 'number'
-                ? entry.avgBpm
+                ? Math.round(entry.avgBpm)
                 : Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
             const maxBpm = typeof entry.maxBpm === 'number'
                 ? entry.maxBpm
