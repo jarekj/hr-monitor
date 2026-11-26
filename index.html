@@ -2355,7 +2355,7 @@
             if (firstZoneMin > minY) {
                 const yTop = yForBpm(Math.min(maxY, firstZoneMin));
                 const yBot = yForBpm(minY);
-                ctx.fillStyle = '#94a3b81a';
+                ctx.fillStyle = '#94a3b833';
                 ctx.fillRect(padL, yTop, plotW, yBot - yTop);
             }
 
@@ -2368,7 +2368,7 @@
                 if (zMax <= zMin) return;
                 const yTop = yForBpm(zMax);
                 const yBot = yForBpm(zMin);
-                ctx.fillStyle = z.color + '26';
+                ctx.fillStyle = z.color + '4d';
                 ctx.fillRect(padL, yTop, plotW, yBot - yTop);
             });
 
