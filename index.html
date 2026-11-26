@@ -469,6 +469,28 @@
         .history-date {
             font-weight: 700;
             font-size: 0.95rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            background: #1e293b;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .workout-type-select {
+            min-height: 40px;
+            padding: 6px 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
         }
 
         .history-stats {
@@ -552,6 +574,11 @@
             header .mode-switch button {
                 min-height: 36px;
                 padding: 5px 9px;
+            }
+
+            .workout-type-select {
+                min-height: 36px;
+                font-size: 0.84rem;
             }
 
             .bpm-cell {
@@ -786,6 +813,10 @@
                 <span id="workoutStateText">Trening: Gotowy do startu</span>
             </div>
             <div class="controls">
+                <div class="field-group">
+                    <label for="workoutTypeSelect" class="status-text" data-i18n="labelWorkoutType">Typ:</label>
+                    <select id="workoutTypeSelect" class="workout-type-select"></select>
+                </div>
                 <button id="btnStart" class="btn-success">▶ Start</button>
                 <button id="btnPause" class="btn-warning" disabled data-i18n="btnPause">⏸ Pauza</button>
                 <button id="btnFinish" class="btn-secondary" disabled data-i18n="btnFinish">⏹ Zakończ</button>
@@ -869,6 +900,18 @@
         const DEFAULT_AGE = 30;
         const DEFAULT_ZONE_MODE = 'pct';
         const DEFAULT_LANG = 'pl';
+        const DEFAULT_WORKOUT_TYPE = 'running';
+
+        const WORKOUT_TYPES = [
+            { id: 'running', icon: '🏃', tcxSport: 'Running', gpxType: 'running' },
+            { id: 'walking', icon: '🚶', tcxSport: 'Other', gpxType: 'walking' },
+            { id: 'cycling', icon: '🚴', tcxSport: 'Biking', gpxType: 'cycling' },
+            { id: 'indoor_cycling', icon: '🚲', tcxSport: 'Biking', gpxType: 'indoor_cycling' },
+            { id: 'strength', icon: '🏋️', tcxSport: 'Other', gpxType: 'strength_training' },
+            { id: 'cardio', icon: '🔥', tcxSport: 'Other', gpxType: 'fitness_equipment' },
+            { id: 'hiking', icon: '🥾', tcxSport: 'Other', gpxType: 'hiking' },
+            { id: 'other', icon: '🏅', tcxSport: 'Other', gpxType: 'other' }
+        ];
 
         const I18N = {
             pl: {
@@ -906,6 +949,7 @@
                 btnPause: '⏸ Pauza',
                 btnFinish: '⏹ Zakończ',
                 btnReset: '↺ Reset',
+                labelWorkoutType: 'Typ:',
                 bpmCurrent: 'Aktualne tętno',
                 bpmPercent: 'Procent HR max',
                 bpmAverage: 'Średnie tętno',
@@ -943,9 +987,19 @@
                 workoutPaused: 'Trening: Wstrzymany (Pauza)',
                 workoutFinished: 'Trening: Zakończony (zapisano w historii)',
                 workoutPreview: 'Trening: Podgląd z historii ({date})',
-                csvHeader: 'Czas_ISO,Czas_treningu,Sekundy,Tetno_BPM,Procent_HRmax,Strefa,Kalorie_kcal\n',
+                csvHeader: 'Czas_ISO,Czas_treningu,Sekundy,Tetno_BPM,Procent_HRmax,Strefa,Kalorie_kcal,Typ_treningu\n',
                 filePrefix: 'trening',
                 gpxTrackName: 'Trening tetna',
+                workoutTypes: {
+                    running: 'Bieganie',
+                    walking: 'Spacer / Marsz',
+                    cycling: 'Kolarstwo',
+                    indoor_cycling: 'Rower stacjonarny',
+                    strength: 'Trening siłowy',
+                    cardio: 'Cardio / Fitness',
+                    hiking: 'Trekking / Góry',
+                    other: 'Inny'
+                },
                 zoneNames: {
                     0: 'Poniżej stref',
                     1: 'Strefa 1: rozgrzewka',
@@ -990,6 +1044,7 @@
                 btnPause: '⏸ Pause',
                 btnFinish: '⏹ Finish',
                 btnReset: '↺ Reset',
+                labelWorkoutType: 'Type:',
                 bpmCurrent: 'Current HR',
                 bpmPercent: '% of HR max',
                 bpmAverage: 'Average HR',
@@ -1027,9 +1082,19 @@
                 workoutPaused: 'Workout: Paused',
                 workoutFinished: 'Workout: Finished (saved to history)',
                 workoutPreview: 'Workout: History preview ({date})',
-                csvHeader: 'Time_ISO,Workout_time,Seconds,Heart_rate_BPM,Percent_HRmax,Zone,Calories_kcal\n',
+                csvHeader: 'Time_ISO,Workout_time,Seconds,Heart_rate_BPM,Percent_HRmax,Zone,Calories_kcal,Workout_type\n',
                 filePrefix: 'workout',
                 gpxTrackName: 'Heart rate workout',
+                workoutTypes: {
+                    running: 'Running',
+                    walking: 'Walking',
+                    cycling: 'Cycling',
+                    indoor_cycling: 'Indoor cycling',
+                    strength: 'Strength training',
+                    cardio: 'Cardio / Fitness',
+                    hiking: 'Hiking',
+                    other: 'Other'
+                },
                 zoneNames: {
                     0: 'Below zones',
                     1: 'Zone 1: warm-up',
@@ -1051,6 +1116,8 @@
 
         // --- Profil i strefy tętna ---
         let currentLang = DEFAULT_LANG;
+        let selectedWorkoutType = DEFAULT_WORKOUT_TYPE;
+        let activeWorkoutType = DEFAULT_WORKOUT_TYPE;
         let hrMax = DEFAULT_HR_MAX;
         let userGender = DEFAULT_GENDER;
         let userWeightKg = DEFAULT_WEIGHT;
@@ -1105,6 +1172,7 @@
         const btnPause = document.getElementById('btnPause');
         const btnFinish = document.getElementById('btnFinish');
         const btnReset = document.getElementById('btnReset');
+        const workoutTypeSelect = document.getElementById('workoutTypeSelect');
 
         const bpmValueEl = document.getElementById('bpmValue');
         const pctValueEl = document.getElementById('pctValue');
@@ -1138,6 +1206,29 @@
         function getZoneName(zoneId) {
             const dict = I18N[currentLang] || I18N.pl;
             return dict.zoneNames[zoneId] || I18N.pl.zoneNames[zoneId] || '';
+        }
+
+        function getValidWorkoutType(typeId) {
+            return WORKOUT_TYPES.some(wt => wt.id === typeId) ? typeId : 'other';
+        }
+
+        function getWorkoutTypeMeta(typeId) {
+            const validId = getValidWorkoutType(typeId);
+            return WORKOUT_TYPES.find(wt => wt.id === validId) || WORKOUT_TYPES[WORKOUT_TYPES.length - 1];
+        }
+
+        function getWorkoutTypeLabel(typeId, withIcon = true) {
+            const meta = getWorkoutTypeMeta(typeId);
+            const dict = I18N[currentLang] || I18N.pl;
+            const name = dict.workoutTypes[meta.id] || I18N.pl.workoutTypes[meta.id] || meta.id;
+            return withIcon ? `${meta.icon} ${name}` : name;
+        }
+
+        function renderWorkoutTypeOptions() {
+            workoutTypeSelect.innerHTML = WORKOUT_TYPES
+                .map(wt => `<option value="${wt.id}">${getWorkoutTypeLabel(wt.id)}</option>`)
+                .join('');
+            workoutTypeSelect.value = getValidWorkoutType(activeWorkoutType);
         }
 
         function renderBleStatus() {
@@ -1181,6 +1272,7 @@
             }
 
             renderBleStatus();
+            renderWorkoutTypeOptions();
             renderZonesTable();
             updateWorkoutUI();
             renderZoneSummary();
@@ -1330,6 +1422,7 @@
             try {
                 const payload = {
                     lang: currentLang,
+                    workoutType: selectedWorkoutType,
                     hrMax,
                     userGender,
                     userWeightKg,
@@ -1374,6 +1467,10 @@
                 const saved = JSON.parse(raw);
                 if (saved.lang === 'pl' || saved.lang === 'en') {
                     currentLang = saved.lang;
+                }
+                if (typeof saved.workoutType === 'string' && WORKOUT_TYPES.some(wt => wt.id === saved.workoutType)) {
+                    selectedWorkoutType = saved.workoutType;
+                    activeWorkoutType = saved.workoutType;
                 }
                 if (typeof saved.hrMax === 'number' && saved.hrMax >= 100 && saved.hrMax <= 240) {
                     hrMax = saved.hrMax;
@@ -1543,6 +1640,7 @@
             const entry = {
                 id: String(Date.now()),
                 createdAt: new Date().toISOString(),
+                workoutType: getValidWorkoutType(activeWorkoutType),
                 durationMs,
                 avgBpm,
                 maxBpm,
@@ -1583,6 +1681,8 @@
             lastResumeTime = null;
             activePreviewId = entry.id;
             activePreviewCreatedAt = entry.createdAt;
+            activeWorkoutType = getValidWorkoutType(entry.workoutType || 'other');
+            workoutTypeSelect.value = activeWorkoutType;
 
             samples = entry.samples.map(s => ({
                 ...s,
@@ -1645,10 +1745,11 @@
 
                 const hasSamples = Array.isArray(item.samples) && item.samples.length > 0;
                 const disabledAttr = hasSamples ? '' : 'disabled';
+                const typeBadge = `<span class="history-type-badge">${getWorkoutTypeLabel(item.workoutType || 'other')}</span>`;
 
                 div.innerHTML = `
           <div class="history-meta">
-            <div class="history-date">${dateLabel}</div>
+            <div class="history-date"><span>${dateLabel}</span>${typeBadge}</div>
             <div class="history-stats">
               ${t('historyTime')}: <strong>${durLabel}</strong> &bull;
               ${t('historyAvg')}: <strong>${item.avgBpm} BPM</strong> &bull;
@@ -1838,12 +1939,21 @@
                 btnFinish.disabled = true;
                 btnReset.disabled = false;
             }
+            workoutTypeSelect.disabled = Boolean(activePreviewCreatedAt);
         }
+
+        workoutTypeSelect.addEventListener('change', () => {
+            if (activePreviewCreatedAt) return;
+            activeWorkoutType = getValidWorkoutType(workoutTypeSelect.value);
+            selectedWorkoutType = activeWorkoutType;
+            saveSettings();
+        });
 
         btnStart.addEventListener('click', () => {
             if (workoutState === 'IDLE' || workoutState === 'PAUSED') {
                 activePreviewId = null;
                 activePreviewCreatedAt = null;
+                activeWorkoutType = getValidWorkoutType(workoutTypeSelect.value);
                 workoutState = 'RUNNING';
                 lastResumeTime = Date.now();
                 requestWakeLock();
@@ -1890,6 +2000,8 @@
             samples = [];
             activePreviewId = null;
             activePreviewCreatedAt = null;
+            activeWorkoutType = selectedWorkoutType;
+            workoutTypeSelect.value = activeWorkoutType;
             if (!isFullscreenView) releaseWakeLock();
             statTimeEl.textContent = '00:00';
             statKcalEl.textContent = '0 kcal';
@@ -2045,7 +2157,14 @@
                 ? entry.calories
                 : (computedKcal ?? Math.round(exportSamples[exportSamples.length - 1].totalKcal || 0));
             const fileTimestamp = getWorkoutFileTimestamp(entry.createdAt || exportSamples[0].timeIso);
-            return { entry, samples: exportSamples, totalKcal, fileTimestamp };
+            const workoutTypeId = getValidWorkoutType(entry.workoutType || 'other');
+            const workoutTypeMeta = getWorkoutTypeMeta(workoutTypeId);
+            const workoutTypeLabel = getWorkoutTypeLabel(workoutTypeId, false);
+            return { entry, samples: exportSamples, totalKcal, fileTimestamp, workoutTypeId, workoutTypeMeta, workoutTypeLabel };
+        }
+
+        function escapeXml(str) {
+            return String(str).replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
         }
 
         function exportWorkoutFromHistory(id, exporter) {
@@ -2055,15 +2174,16 @@
             exporter(prepared);
         }
 
-        function exportWorkoutCsv({ samples: exportSamples, fileTimestamp }) {
+        function exportWorkoutCsv({ samples: exportSamples, fileTimestamp, workoutTypeId, workoutTypeLabel }) {
             const header = t('csvHeader');
+            const safeType = `"${String(workoutTypeLabel).replace(/"/g, '""')}"`;
             const rows = exportSamples.map(s =>
-                `${s.timeIso},${formatDuration(s.elapsedSec)},${s.elapsedSec},${s.bpm},${s.pct}%,${getZoneForBpm(s.bpm).id},${s.totalKcal ?? 0}`
+                `${s.timeIso},${formatDuration(s.elapsedSec)},${s.elapsedSec},${s.bpm},${s.pct}%,${getZoneForBpm(s.bpm).id},${s.totalKcal ?? 0},${safeType}`
             ).join('\n');
-            downloadFile('\uFEFF' + header + rows, `${t('filePrefix')}_${fileTimestamp}.csv`, 'text/csv;charset=utf-8;');
+            downloadFile('\uFEFF' + header + rows, `${t('filePrefix')}_${workoutTypeId}_${fileTimestamp}.csv`, 'text/csv;charset=utf-8;');
         }
 
-        function exportWorkoutTcx({ entry, samples: exportSamples, totalKcal, fileTimestamp }) {
+        function exportWorkoutTcx({ entry, samples: exportSamples, totalKcal, fileTimestamp, workoutTypeId, workoutTypeMeta, workoutTypeLabel }) {
             const startIso = exportSamples[0].timeIso;
             const totalSec = Math.max(1, exportSamples[exportSamples.length - 1].elapsedSec);
             const bpms = exportSamples.map(s => s.bpm);
@@ -2083,7 +2203,7 @@
             const tcx = `<?xml version="1.0" encoding="UTF-8"?>
 <TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2">
   <Activities>
-    <Activity Sport="Other">
+    <Activity Sport="${workoutTypeMeta.tcxSport}">
       <Id>${startIso}</Id>
       <Lap StartTime="${startIso}">
         <TotalTimeSeconds>${totalSec}</TotalTimeSeconds>
@@ -2096,14 +2216,15 @@
         <Track>${trackpoints}
         </Track>
       </Lap>
+      <Notes>${escapeXml(workoutTypeLabel)}</Notes>
     </Activity>
   </Activities>
 </TrainingCenterDatabase>`;
 
-            downloadFile(tcx, `${t('filePrefix')}_${fileTimestamp}.tcx`, 'application/vnd.garmin.tcx+xml;charset=utf-8;');
+            downloadFile(tcx, `${t('filePrefix')}_${workoutTypeId}_${fileTimestamp}.tcx`, 'application/vnd.garmin.tcx+xml;charset=utf-8;');
         }
 
-        function exportWorkoutGpx({ samples: exportSamples, fileTimestamp }) {
+        function exportWorkoutGpx({ samples: exportSamples, fileTimestamp, workoutTypeId, workoutTypeMeta, workoutTypeLabel }) {
             const startIso = exportSamples[0].timeIso;
 
             const trkpts = exportSamples.map(s => `
@@ -2124,13 +2245,14 @@
     <time>${startIso}</time>
   </metadata>
   <trk>
-    <name>${t('gpxTrackName')} ${startIso}</name>
+    <name>${escapeXml(workoutTypeLabel)} (${startIso})</name>
+    <type>${workoutTypeMeta.gpxType}</type>
     <trkseg>${trkpts}
     </trkseg>
   </trk>
 </gpx>`;
 
-            downloadFile(gpx, `${t('filePrefix')}_${fileTimestamp}.gpx`, 'application/gpx+xml;charset=utf-8;');
+            downloadFile(gpx, `${t('filePrefix')}_${workoutTypeId}_${fileTimestamp}.gpx`, 'application/gpx+xml;charset=utf-8;');
         }
 
         // --- Rysowanie wykresu z osią czasu (oś X) ---

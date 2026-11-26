@@ -10,8 +10,8 @@ A lightweight, zero-dependency Progressive Web App (PWA) for real-time heart rat
 - **Stats & Zone Pie Chart**: Tracks elapsed workout time, calories burned (Keytel formula using sex, weight, age, and heart rate), sample count, and an SVG pie chart with legend showing time and percentage spent in each zone.
 - **Live Heart Rate Chart**: HTML5 `<canvas>` chart plotting heart rate over workout duration across color-coded zone bands.
 - **Customizable Profile & Zones**: Configure `HR max` (`100–240 BPM`), sex, weight (`30–250 kg`), age (`10–100`), and 5 heart rate zones in either `% HR max` or nominal `BPM` mode. Settings persist automatically in `localStorage`.
-- **Workout Controls & History**: Start, pause/resume, finish, and reset workouts. Completed workouts are saved in `localStorage` and can be previewed or deleted at any time.
-- **Activity Export**: Export any saved workout from history as **CSV**, **TCX** (Garmin Training Center XML v2), or **GPX** (with `TrackPointExtension` heart rate data).
+- **Workout Controls & History**: Choose the workout type (`Running`, `Walking`, `Cycling`, `Indoor cycling`, `Strength training`, `Cardio / Fitness`, `Hiking`, `Other`), then start, pause/resume, finish, and reset workouts. Completed workouts are saved in `localStorage` with their type badge and can be previewed or deleted at any time.
+- **Activity Export**: Export any saved workout from history as **CSV**, **TCX** (Garmin Training Center XML v2 with mapped `Sport` attribute), or **GPX** (with `<type>` and `TrackPointExtension` heart rate data).
 - **Bilingual UI (`PL` / `EN`)**: Switch between Polish and English directly from the header; the selected language is saved in `localStorage`.
 - **PWA, Fullscreen & Wake Lock**: Installable via `manifest.json` and `sw.js` (network-first caching), with fullscreen workout view, Screen Wake Lock support, and responsive layouts for desktop, mobile portrait, and mobile landscape.
 
