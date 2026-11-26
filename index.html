@@ -478,6 +478,7 @@
 
         .history-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
         }
 
@@ -789,9 +790,6 @@
                 <button id="btnPause" class="btn-warning" disabled data-i18n="btnPause">⏸ Pauza</button>
                 <button id="btnFinish" class="btn-secondary" disabled data-i18n="btnFinish">⏹ Zakończ</button>
                 <button id="btnReset" class="btn-danger" disabled data-i18n="btnReset">↺ Reset</button>
-                <button id="btnExportCsv" disabled>⬇ CSV</button>
-                <button id="btnExportTcx" disabled>⬇ TCX</button>
-                <button id="btnExportGpx" disabled>⬇ GPX</button>
             </div>
         </section>
 
@@ -1107,9 +1105,6 @@
         const btnPause = document.getElementById('btnPause');
         const btnFinish = document.getElementById('btnFinish');
         const btnReset = document.getElementById('btnReset');
-        const btnExportCsv = document.getElementById('btnExportCsv');
-        const btnExportTcx = document.getElementById('btnExportTcx');
-        const btnExportGpx = document.getElementById('btnExportGpx');
 
         const bpmValueEl = document.getElementById('bpmValue');
         const pctValueEl = document.getElementById('pctValue');
@@ -1125,12 +1120,6 @@
         const btnClearHistory = document.getElementById('btnClearHistory');
         const canvas = document.getElementById('hrChart');
         const ctx = canvas.getContext('2d');
-
-        function setExportButtonsDisabled(disabled) {
-            btnExportCsv.disabled = disabled;
-            btnExportTcx.disabled = disabled;
-            btnExportGpx.disabled = disabled;
-        }
 
         // --- Wielojęzyczność (PL / EN) ---
         function t(key, vars = {}) {
@@ -1221,13 +1210,13 @@
             return Math.max(0, kcalMin);
         }
 
-        function recalculateCaloriesFromSamples() {
+        function recalculateCaloriesFromSamples(targetSamples = samples) {
             let total = 0;
-            for (let i = 0; i < samples.length; i++) {
-                const prevMs = i === 0 ? 0 : samples[i - 1].elapsedMs;
-                const dtMin = Math.max(0, samples[i].elapsedMs - prevMs) / 60000;
-                total += getKcalPerMinute(samples[i].bpm) * dtMin;
-                samples[i].totalKcal = Number(total.toFixed(1));
+            for (let i = 0; i < targetSamples.length; i++) {
+                const prevMs = i === 0 ? 0 : targetSamples[i - 1].elapsedMs;
+                const dtMin = Math.max(0, targetSamples[i].elapsedMs - prevMs) / 60000;
+                total += getKcalPerMinute(targetSamples[i].bpm) * dtMin;
+                targetSamples[i].totalKcal = Number(total.toFixed(1));
             }
             return Math.round(total);
         }
@@ -1654,6 +1643,9 @@
                 const durLabel = formatDuration(Math.floor(item.durationMs / 1000));
                 const kcalText = typeof item.calories === 'number' ? ` &bull; ${t('historyCalories')}: <strong>${item.calories} kcal</strong>` : '';
 
+                const hasSamples = Array.isArray(item.samples) && item.samples.length > 0;
+                const disabledAttr = hasSamples ? '' : 'disabled';
+
                 div.innerHTML = `
           <div class="history-meta">
             <div class="history-date">${dateLabel}</div>
@@ -1666,17 +1658,27 @@
           </div>
           <div class="history-actions">
             <button class="btn-outline btn-sm" data-action="load" data-id="${item.id}">${t('historyPreviewBtn')}</button>
+            <button class="btn-sm" data-action="csv" data-id="${item.id}" ${disabledAttr}>⬇ CSV</button>
+            <button class="btn-sm" data-action="tcx" data-id="${item.id}" ${disabledAttr}>⬇ TCX</button>
+            <button class="btn-sm" data-action="gpx" data-id="${item.id}" ${disabledAttr}>⬇ GPX</button>
             <button class="btn-danger btn-sm" data-action="delete" data-id="${item.id}">${t('historyDeleteBtn')}</button>
           </div>
         `;
                 historyList.appendChild(div);
             });
 
+            const exportActions = {
+                csv: exportWorkoutCsv,
+                tcx: exportWorkoutTcx,
+                gpx: exportWorkoutGpx
+            };
+
             historyList.querySelectorAll('button').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const { action, id } = btn.dataset;
                     if (action === 'load') loadWorkoutFromHistory(id);
-                    if (action === 'delete') deleteWorkoutFromHistory(id);
+                    else if (action === 'delete') deleteWorkoutFromHistory(id);
+                    else if (exportActions[action]) exportWorkoutFromHistory(id, exportActions[action]);
                 });
             });
         }
@@ -1836,7 +1838,6 @@
                 btnFinish.disabled = true;
                 btnReset.disabled = false;
             }
-            setExportButtonsDisabled(samples.length === 0);
         }
 
         btnStart.addEventListener('click', () => {
@@ -1950,7 +1951,6 @@
             statAvgEl.textContent = avg;
             statMaxEl.textContent = max;
             statCountEl.textContent = samples.length;
-            setExportButtonsDisabled(false);
 
             drawChart();
             renderZoneSummary();
@@ -2029,32 +2029,54 @@
             URL.revokeObjectURL(url);
         }
 
-        function getFileTimestamp() {
-            return new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+        function getWorkoutFileTimestamp(isoDate) {
+            return new Date(isoDate).toISOString().slice(0, 19).replace(/[:T]/g, '-');
         }
 
-        btnExportCsv.addEventListener('click', () => {
-            if (!samples.length) return;
-            recalculateCaloriesFromSamples();
+        function prepareWorkoutForExport(entry) {
+            if (!entry || !Array.isArray(entry.samples) || !entry.samples.length) return null;
+            const exportSamples = entry.samples.map(s => ({
+                ...s,
+                timeIso: new Date(s.time).toISOString()
+            }));
+            const hasSavedKcal = exportSamples.every(s => typeof s.totalKcal === 'number');
+            const computedKcal = hasSavedKcal ? null : recalculateCaloriesFromSamples(exportSamples);
+            const totalKcal = typeof entry.calories === 'number'
+                ? entry.calories
+                : (computedKcal ?? Math.round(exportSamples[exportSamples.length - 1].totalKcal || 0));
+            const fileTimestamp = getWorkoutFileTimestamp(entry.createdAt || exportSamples[0].timeIso);
+            return { entry, samples: exportSamples, totalKcal, fileTimestamp };
+        }
+
+        function exportWorkoutFromHistory(id, exporter) {
+            const entry = getStoredHistory().find(item => item.id === id);
+            const prepared = prepareWorkoutForExport(entry);
+            if (!prepared) return;
+            exporter(prepared);
+        }
+
+        function exportWorkoutCsv({ samples: exportSamples, fileTimestamp }) {
             const header = t('csvHeader');
-            const rows = samples.map(s =>
-                `${s.time.toISOString()},${formatDuration(s.elapsedSec)},${s.elapsedSec},${s.bpm},${s.pct}%,${getZoneForBpm(s.bpm).id},${s.totalKcal ?? 0}`
+            const rows = exportSamples.map(s =>
+                `${s.timeIso},${formatDuration(s.elapsedSec)},${s.elapsedSec},${s.bpm},${s.pct}%,${getZoneForBpm(s.bpm).id},${s.totalKcal ?? 0}`
             ).join('\n');
-            downloadFile('\uFEFF' + header + rows, `${t('filePrefix')}_${getFileTimestamp()}.csv`, 'text/csv;charset=utf-8;');
-        });
+            downloadFile('\uFEFF' + header + rows, `${t('filePrefix')}_${fileTimestamp}.csv`, 'text/csv;charset=utf-8;');
+        }
 
-        btnExportTcx.addEventListener('click', () => {
-            if (!samples.length) return;
-            const startIso = samples[0].time.toISOString();
-            const totalSec = Math.max(1, samples[samples.length - 1].elapsedSec);
-            const bpms = samples.map(s => s.bpm);
-            const avgBpm = Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
-            const maxBpm = Math.max(...bpms);
-            const totalKcal = recalculateCaloriesFromSamples();
+        function exportWorkoutTcx({ entry, samples: exportSamples, totalKcal, fileTimestamp }) {
+            const startIso = exportSamples[0].timeIso;
+            const totalSec = Math.max(1, exportSamples[exportSamples.length - 1].elapsedSec);
+            const bpms = exportSamples.map(s => s.bpm);
+            const avgBpm = typeof entry.avgBpm === 'number'
+                ? entry.avgBpm
+                : Math.round(bpms.reduce((a, b) => a + b, 0) / bpms.length);
+            const maxBpm = typeof entry.maxBpm === 'number'
+                ? entry.maxBpm
+                : Math.max(...bpms);
 
-            const trackpoints = samples.map(s => `
+            const trackpoints = exportSamples.map(s => `
           <Trackpoint>
-            <Time>${s.time.toISOString()}</Time>
+            <Time>${s.timeIso}</Time>
             <HeartRateBpm><Value>${s.bpm}</Value></HeartRateBpm>
           </Trackpoint>`).join('');
 
@@ -2078,16 +2100,15 @@
   </Activities>
 </TrainingCenterDatabase>`;
 
-            downloadFile(tcx, `${t('filePrefix')}_${getFileTimestamp()}.tcx`, 'application/vnd.garmin.tcx+xml;charset=utf-8;');
-        });
+            downloadFile(tcx, `${t('filePrefix')}_${fileTimestamp}.tcx`, 'application/vnd.garmin.tcx+xml;charset=utf-8;');
+        }
 
-        btnExportGpx.addEventListener('click', () => {
-            if (!samples.length) return;
-            const startIso = samples[0].time.toISOString();
+        function exportWorkoutGpx({ samples: exportSamples, fileTimestamp }) {
+            const startIso = exportSamples[0].timeIso;
 
-            const trkpts = samples.map(s => `
+            const trkpts = exportSamples.map(s => `
       <trkpt lat="0" lon="0">
-        <time>${s.time.toISOString()}</time>
+        <time>${s.timeIso}</time>
         <extensions>
           <gpxtpx:TrackPointExtension>
             <gpxtpx:hr>${s.bpm}</gpxtpx:hr>
@@ -2109,8 +2130,8 @@
   </trk>
 </gpx>`;
 
-            downloadFile(gpx, `${t('filePrefix')}_${getFileTimestamp()}.gpx`, 'application/gpx+xml;charset=utf-8;');
-        });
+            downloadFile(gpx, `${t('filePrefix')}_${fileTimestamp}.gpx`, 'application/gpx+xml;charset=utf-8;');
+        }
 
         // --- Rysowanie wykresu z osią czasu (oś X) ---
         function drawChart() {
